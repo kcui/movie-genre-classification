@@ -36,6 +36,24 @@ def asciify(value, allow_unicode=False):
     value = re.sub(r'[^\w\s-]', '', value).strip().lower()
     return re.sub(r'[-\s]+', '-', value)
 
+def write_movie_titles():
+    """
+    Returns movie titles in hyphenated, sanitized form as per the website HTML.
+    """
+    print("getting and writing hyphenated movie titles to file...")
+    urls = get_movie_urls()
+    base_data_path = "./data"
+    try:
+        os.stat(base_data_path)
+    except:
+        os.mkdir(base_data_path)
+    with open(os.path.join(base_data_path, 'movie-titles.txt'), 'w') as f:
+        for movie_url in urls:
+            movie_html = urlopen(movie_url).read()
+            soup = BeautifulSoup(movie_html, "lxml")
+            movie_title = asciify(soup.title.string.split(" – FILMGRAB", 1)[0])
+            f.write('%s\n' % movie_title)
+    print("done getting and writing hyphenated movie titles to file (stored in data/movie-titles.txt).\n")
 
 def get_movie_urls():
     movie_list_html = urlopen(BASE + "movies-a-z/").read()
@@ -46,6 +64,7 @@ def get_movie_urls():
 
 
 def get_movie_frames(movie_url, movie_num):
+    print("downloading movie frames from film-grab...")
     movie_html = urlopen(movie_url).read()
     soup = BeautifulSoup(movie_html, "lxml")
 
@@ -92,8 +111,15 @@ def get_movie_frames(movie_url, movie_num):
         else:
             # case where there is no download and no data; just print error
             print("WARNING: movie %d (%s) has no scrapable frames" % (movie_num, movie_title))
+    print("done downloading movie frames from film-grab (stored in film-grab/).\n")
 
-movie_urls = get_movie_urls()
-for movie_num, movie_url in enumerate(movie_urls[1:]):
-    movie_image_urls = get_movie_frames(movie_url, movie_num+1)
-    
+def save_all_movie_frames():
+    movie_urls = get_movie_urls()
+    for movie_num, movie_url in enumerate(movie_urls[1:]):
+        movie_image_urls = get_movie_frames(movie_url, movie_num+1)
+
+if __name__ == "__main__":
+    pass
+    # UNCOMMENT TO RUN
+    # write_movie_titles()
+    # get_movie_frames()
