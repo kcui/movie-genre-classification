@@ -3,8 +3,10 @@ import csv
 import unicodedata
 import os
 import tensorflow as tf
+import numpy as np
 
-def load_framedata(path="./data/frame-genre-map.txt", drop_rate=0, train_ratio=1):
+# dropout in model
+def load_framedata(path="./data/frame-genre-map.txt", train_ratio=1):
     # TODO: implement drop_rate, test/train split
     # check if the mapping file is available
     try:
@@ -28,7 +30,7 @@ def load_framedata(path="./data/frame-genre-map.txt", drop_rate=0, train_ratio=1
         return inputs, labels
 
 def load_and_process_image(file_path):
-    new_size = [100, 185] # dunno if this is good
+    new_size = [128, 176] # dunno if this is good
 
     image = tf.io.decode_jpeg(tf.io.read_file(file_path), channels=3)
     image = tf.image.convert_image_dtype(image, tf.float32)
@@ -37,6 +39,12 @@ def load_and_process_image(file_path):
     return image
 
 inputs, labels = load_framedata()
+print('converting to numpy...')
+inputs = np.array(inputs)
+labels = np.array(labels)
+print('saving....')
+np.save('inputs', inputs)
+np.save('labels', labels)
 
 
 # image = tf.image.convert_image_dtype(image, tf.float32)

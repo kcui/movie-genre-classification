@@ -119,7 +119,6 @@ def save_all_movie_frames():
         movie_image_urls = get_movie_frames(movie_url, movie_num+1)
 
 if __name__ == "__main__":
-    pass
     # UNCOMMENT TO RUN
-    # write_movie_titles()
+    write_movie_titles()
     # get_movie_frames()
