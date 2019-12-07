@@ -14,7 +14,7 @@ def load_framedata(path="./data/frame-genre-map.txt", train_ratio=1):
     except:
         print("error: frame to genre map file not found; aborting")
         return None
-    
+
     inputs = []
     labels = []
     # total number of frames ~130k, takes about 30min?
@@ -54,7 +54,3 @@ np.save('labels', labels)
 # fname = tf.constant('asdf.jpg')
 # fwrite = tf.io.write_file(fname, enc)
 # return image
-    
-    
-
-    
