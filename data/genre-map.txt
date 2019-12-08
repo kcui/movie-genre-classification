@@ -891,6 +891,7 @@ war-requiem	Drama,War
 who-framed-roger-rabbit	Adventure,Animation,Comedy
 as-tears-go-by	Crime,Drama,Romance
 black-snow	Action
+blaze	Biography,Drama
 catch-me-if-you-can	Action,Comedy,Drama
 a-tale-of-springtime	Comedy,Drama,Romance
 crimes-and-misdemeanors	Comedy,Drama
@@ -1308,6 +1309,7 @@ japon	Drama
 god-bless-america	Short
 coraline	Animation,Drama,Fantasy
 ondine	Drama,Fantasy,Romance
+high-life	Comedy,Short
 seabiscuit	Drama,History,Sport
 the-brown-bunny	Drama
 girl-with-a-pearl-earring	Biography,Drama,Romance

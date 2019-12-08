@@ -225,6 +225,7 @@ blade-ii
 blade-runner
 blade-runner-2049
 blast-of-silence
+blaze
 blindspotting
 blissfully-yours
 blonde-venus
