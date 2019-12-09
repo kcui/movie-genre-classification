@@ -47,7 +47,7 @@ def setup_model(shape, num_classes):
     model.add(Dense(num_classes, activation='softmax'))
 
     adam = Adam() # tune adam parameters possibly
-    model.compile(loss='categorical_crossentropy', optimizer=adam)
+    model.compile(loss='categorical_crossentropy', optimizer=adam, metrics=['accuracy'])
     model.summary()
 
     return model
