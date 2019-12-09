@@ -30,6 +30,7 @@ def load_framedata(path="./data/frame-genre-map.txt", train_ratio=1):
         # genre as labels
         for i, mapping in enumerate(map):
             frame_path, genres = mapping.split('\t')
+            print('hi')
             print(genres)
             genres = genres.strip()
             genres = genres.split(',')
