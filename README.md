@@ -14,7 +14,7 @@ DELETE movie "meeks-cutoff" contains PNG files instead of JPG
 
 and run only `write_movie_titles()` in `main()`.
 
-Step 3: Download and extract the IMDb movie info `title.basics.tsv` (with genre data) from https://datasets.imdbws.com/title.basics.tsv.gz and place in the root directory, then run `parse-imdb-data.py`. This will store a map from title to IMDb-assigned genre in `data/genre-map.txt` as a tsv and a map from movie frame path (relative) to genre (just one if `only_first_genre` is True, otherwise a comma-separated list of genres) in `data/frame-genre-map.txt`. This is the dataset we'll be using.
+Step 3: Download and extract the IMDb movie info `title.basics.tsv` (with genre data) from https://datasets.imdbws.com/title.basics.tsv.gz and place in the root directory, run 'gunzip title.basics.tsv.gz' in terminal, then run `parse-imdb-data.py`. This will store a map from title to IMDb-assigned genre in `data/genre-map.txt` as a tsv and a map from movie frame path (relative) to genre (just one if `only_first_genre` is True, otherwise a comma-separated list of genres) in `data/frame-genre-map.txt`. This is the dataset we'll be using.
 
 # MODEL
 
