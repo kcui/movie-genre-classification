@@ -2,9 +2,9 @@ import tensorflow as tf
 import numpy as np
 import pickle
 
-from keras.models import Sequential
-from keras.layers import Dense, Activation, Conv2D, MaxPooling2D, Dropout, Flatten
-from keras.optimizers import Adam
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense, Activation, Conv2D, MaxPooling2D, Dropout, Flatten
+from tensorflow.keras.optimizers import Adam
 from preprocess import load_framedata
 from dataGenerator import dataGenerator
 

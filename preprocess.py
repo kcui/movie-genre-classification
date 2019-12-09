@@ -34,7 +34,6 @@ def load_framedata(path="./data/frame-genre-map.txt", train_ratio=1):
             genres = genres.split(',')
 
             inputs.append(frame_path)
-            print(genres.shape)
             labels.append([genres[0]])
             #labels.append([genres[1]])
 
