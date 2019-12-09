@@ -2,7 +2,7 @@ from skimage.io import imread
 from skimage.transform import resize
 import numpy as np
 import math
-from keras.utils import Sequence
+from tensorflow.keras.utils import Sequence
 
 """
 Class for generating data on the dataset
