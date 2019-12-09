@@ -59,7 +59,7 @@ def run_model():
     test_generator = dataGenerator(X_test, y_test, batch_size=128)
 
     model = setup_model((128, 176), num_classes=24)
-    model.fit_generator(train_generator, epochs=3, verbose=1)
+    model.fit_generator(train_generator, epochs=1, verbose=1)
 
     model.save('model_1')
 
