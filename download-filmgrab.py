@@ -20,7 +20,7 @@ download_path = os.path.normpath(os.path.join(dir_path, args.output))
 try:
     os.stat(download_path)
 except:
-    os.mkdir(download_path)  
+    os.mkdir(download_path)
 
 def asciify(value, allow_unicode=False):
     """
@@ -76,7 +76,7 @@ def get_movie_frames(movie_url, movie_num):
     try:
         os.stat(movie_download_folder)
     except:
-        os.mkdir(movie_download_folder)  
+        os.mkdir(movie_download_folder)
 
     movie_images_zip_div = soup.find("div", "bwg_download_gallery")
     if movie_images_zip_div is not None:
@@ -121,4 +121,4 @@ def save_all_movie_frames():
 if __name__ == "__main__":
     # UNCOMMENT TO RUN
     write_movie_titles()
-    # get_movie_frames()
+    get_movie_frames()
