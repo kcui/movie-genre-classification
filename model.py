@@ -64,10 +64,12 @@ def run_model():
     model.save('model_1')
 
     print('------- Testing model -------')
-    
+
     score = model.evaluate_generator(test_generator)
     print("Test Metrics: ", score)
 
 if __name__ == "__main__":
     # setup_model()
+    gpu_available = tf.test.is_gpu_available()
+    print("GPU Available: ", gpu_available)
     run_model()
