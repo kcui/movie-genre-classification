@@ -11,25 +11,25 @@ from dataGenerator import dataGenerator
 
 def setup_model(shape, num_classes):
     model = Sequential()
-    model.add(Conv2D(32, (3, 3), activation='relu', input_shape=(shape[0], shape[1], 3)))
-    model.add(Conv2D(32, (3, 3), activation='relu'))
+    model.add(Conv2D(32, (3, 3), activation='relu', padding='same', input_shape=(shape[0], shape[1], 3)))
+    model.add(Conv2D(32, (3, 3), activation='relu', padding='same',))
     model.add(MaxPooling2D(pool_size=(2, 2)))
     model.add(Dropout(0.1))
 
-    model.add(Conv2D(64, (3, 3), activation='relu'))
-    model.add(Conv2D(64, (3, 3), activation='relu'))
+    model.add(Conv2D(64, (3, 3), activation='relu', padding='same',))
+    model.add(Conv2D(64, (3, 3), activation='relu', padding='same',))
     model.add(MaxPooling2D(pool_size=(2, 2)))
     model.add(Dropout(0.1))
 
-    model.add(Conv2D(128, (3, 3), activation='relu'))
-    model.add(Conv2D(128, (3, 3), activation='relu'))
-    model.add(Conv2D(128, (3, 3), activation='relu'))
+    model.add(Conv2D(128, (3, 3), activation='relu', padding='same',))
+    model.add(Conv2D(128, (3, 3), activation='relu', padding='same',))
+    model.add(Conv2D(128, (3, 3), activation='relu', padding='same',))
     model.add(MaxPooling2D(pool_size=(2, 2)))
     model.add(Dropout(0.1))
 
-    model.add(Conv2D(256, (3, 3), activation='relu'))
-    model.add(Conv2D(256, (3, 3), activation='relu'))
-    model.add(Conv2D(256, (3, 3), activation='relu'))
+    model.add(Conv2D(256, (3, 3), activation='relu', padding='same',))
+    model.add(Conv2D(256, (3, 3), activation='relu', padding='same',))
+    model.add(Conv2D(256, (3, 3), activation='relu', padding='same',))
     model.add(MaxPooling2D(pool_size=(2, 2)))
     model.add(Dropout(0.1))
 
