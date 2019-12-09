@@ -38,9 +38,9 @@ def load_framedata(path="./data/frame-genre-map.txt", train_ratio=1):
             #labels.append([genres[1]])
 
         # onehotencoding labels, needs to be editted for multiclass
-    enc = OneHotEncoder()
-    enc.fit(labels)
-    labels = enc.transform(labels).toarray()
+        enc = OneHotEncoder()
+        enc.fit(labels)
+        labels = enc.transform(labels).toarray()
 
-    # SKlearn train_test_split. Automatically shuffles the data
-    return train_test_split(inputs, labels, test_size=0.2, random_state=42)
+        # SKlearn train_test_split. Automatically shuffles the data
+        return train_test_split(inputs, labels, test_size=0.2, random_state=42)
