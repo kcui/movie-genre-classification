@@ -70,5 +70,6 @@ def run_model():
 
 if __name__ == "__main__":
     # setup_model()
-    print("Num GPUs Available: ", len(tf.config.experimental.list_physical_devices('GPU')))
+    gpu_available = tf.test.is_gpu_available()
+    print("GPU Available: ", gpu_available)
     run_model()
