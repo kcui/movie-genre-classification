@@ -42,7 +42,6 @@ def load_framedata(path="./data/frame-genre-map.txt", train_ratio=1):
 
         # onehotencoding labels, needs to be editted for multiclass
         enc = OneHotEncoder()
-        print(labels)
         enc.fit(labels)
         labels = enc.transform(labels).toarray()
 
