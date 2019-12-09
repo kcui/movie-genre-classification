@@ -56,15 +56,16 @@ def run_model():
     X_train, X_test, y_train, y_test = load_framedata() # loads in data from preprocess
 
     train_generator = dataGenerator(X_train, y_train, batch_size=128) # see datagenerator class
+    test_generator = dataGenerator(X_test, y_test, batch_size=128)
 
     model = setup_model((128, 176), num_classes=24)
-    model.fit_generator(train_generator, epochs=3, validation_split=0.1, verbose=1) # 10% of train is validation data
+    model.fit_generator(train_generator, epochs=3, verbose=1)
 
     model.save('model_1')
 
     print('------- Testing model -------')
     
-    score = model.evaluate(X_test, y_test, batch_size=128)
+    score = model.evaluate_generator(test_generator)
     print("Test Metrics: ", score)
 
 if __name__ == "__main__":
