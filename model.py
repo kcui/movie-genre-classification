@@ -1,5 +1,6 @@
 import tensorflow as tf
 import numpy as np
+import pickle
 
 from keras.models import Sequential
 from keras.layers import Dense, Activation, Conv2D, MaxPooling2D, Dropout, Flatten
@@ -45,15 +46,27 @@ def setup_model(shape, num_classes):
     model.add(Dropout(0.4))
     model.add(Dense(num_classes, activation='softmax'))
 
-    adam = Adam()
+    adam = Adam() # tune adam parameters possibly
     model.compile(loss='categorical_crossentropy', optimizer=adam)
     model.summary()
 
     return model
 
+def run_model():
+    X_train, X_test, y_train, y_test = load_framedata() # loads in data from preprocess
+
+    train_generator = dataGenerator(X_train, y_train, batch_size=128) # see datagenerator class
+
+    model = setup_model((128, 176), num_classes=24)
+    model.fit_generator(train_generator, epochs=3, validation_split=0.1, verbose=1) # 10% of train is validation data
+
+    model.save('model_1')
+
+    print('------- Testing model -------')
+    
+    score = model.evaluate(X_test, y_test, batch_size=128)
+    print("Test Metrics: ", score)
+
 if __name__ == "__main__":
     # setup_model()
-    im_paths, labels = load_framedata()
-    generator = dataGenerator(im_paths, labels, batch_size=128)
-    model = setup_model((128, 176), num_classes=24)
-    model.fit_generator(generator, epochs=3, verbose=2)
+    run_model()
