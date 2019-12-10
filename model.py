@@ -141,7 +141,7 @@ def run_model(multiclass=True):
 
     try:
         os.stat('./model_1.h5')
-        print("loading model..")
+        print("existing model found; loading model...")
         model = load_model('./model_1.h5')
     except:
         print("no preloaded model. training model...")
