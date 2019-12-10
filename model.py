@@ -196,15 +196,15 @@ def run_model(multiclass=True):
 
     print('------- Testing model -------')
 
-    score = model.evaluate_generator(test_generator, verbose=1)
-    print("Test Metrics: ", score)
-    np.set_printoptions(threshold=sys.maxsize)
+    # score = model.evaluate_generator(test_generator, verbose=1)
+    # print("Test Metrics: ", score)
+    # np.set_printoptions(threshold=sys.maxsize)
 
     frame_preds = model.predict_generator(test_generator, verbose=1) # generate prediction labels on the frames
 
-    print(frame_preds.shape)
-    print(frame_preds)
-    print(np.argmax(frame_preds, axis=1))
+    # print(frame_preds.shape)
+    # print(frame_preds)
+    # print(np.argmax(frame_preds, axis=1))
 
     if multiclass:
         # categorical accuracy
