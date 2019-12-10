@@ -140,17 +140,17 @@ def run_model():
 
     frame_preds = model.predict_generator(test_generator) # generate prediction labels on the frames
     
-    pred_dict = movie_preds(X_test, frame_preds) # movie -> genre (onehot)
+    pred_dict = movie_preds(X_test, frame_preds.flatten()) # movie -> genre (onehot)
     label_dict = movie_preds(X_test, y_test) # movie -> genre (onehot)
 
     print('Test Accuracy predicting Movie Genres: ', test_accuracy(pred_dict, label_dict)) # accuracy
 
-    pred_dict, label_dict = convert_onehot_to_genre(pred_dict, label_dict, num_to_genre)
+    # pred_dict, label_dict = convert_onehot_to_genre(pred_dict, label_dict, num_to_genre)
 
-    print('Movie\tPredicted\tActual')
+    # print('Movie\tPredicted\tActual')
 
-    for mov in pred_dict.keys():
-        print("%s\t%s\t%s", mov, pred_dict[mov], label_dict[mov])
+    # for mov in pred_dict.keys():
+    #     print("%s\t%s\t%s", mov, pred_dict[mov], label_dict[mov])
 
 
 if __name__ == "__main__":
