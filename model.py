@@ -44,7 +44,7 @@ def setup_model(shape, num_classes):
     model.add(Dropout(0.4))
     model.add(Dense(2048, activation='relu'))
     model.add(Dropout(0.4))
-    model.add(Dense(num_classes, activation='softmax'))
+    model.add(Dense(num_classes, activation='sigmoid'))
 
     adam = Adam() # tune adam parameters possibly
     model.compile(loss='categorical_crossentropy', optimizer=adam, metrics=['accuracy'])
