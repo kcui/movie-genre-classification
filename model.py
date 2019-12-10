@@ -156,7 +156,7 @@ def convert_onehot_to_genre(pred_dict, label_dict, num_to_genre):
 
 def run_model(multiclass=True):
     # X_train, X_test, y_train, y_test, encoder = load_framedata(multiclass) # loads in data from preprocess
-    X_train, X_test, y_train, y_test, encoder = split_on_movie(multiclass=False)
+    X_train, X_test, y_train, y_test, encoder = split_on_movie(multiclass)
     # Used to convert from onehot labels back to genre strings
 
     # print(y_test)
