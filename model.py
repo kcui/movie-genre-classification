@@ -52,21 +52,104 @@ def setup_model(shape, num_classes):
 
     return model
 
-def run_model():
-    X_train, X_test, y_train, y_test = load_framedata() # loads in data from preprocess
+"""
+Returns the genre class for a movie, depending on the most frequently classified frame genres.
 
-    train_generator = dataGenerator(X_train, y_train, batch_size=128) # see datagenerator class
-    test_generator = dataGenerator(X_test, y_test, batch_size=128)
+returns a map from movie to the predicted genre for that movie (onehot)
+"""
+def movie_preds(inputs, frame_preds):
+
+    mov_dict = {}
+
+    for i in range(len(inputs)):
+        path = inputs[i]
+        pred = frame_preds[i]
+
+        mov = path.split('/')[2]
+        if mov not in mov_dict:
+            mov_dict[mov] = {}
+        
+        if pred not in mov_dict[mov]:
+            mov_dict[mov][pred] = 1
+        else:
+            mov_dict[mov][pred] += 1
+
+    mov_to_label = {}
+    
+    # currently assigns the most frequently predicted genre to the movie
+    for mov in mov_dict.keys():
+        max_pred = None
+        max_pred_val = 0
+
+        for pred in mov_dict[mov].keys():
+            if mov_dict[mov][pred] > max_pred_val:
+                max_pred = pred
+                max_pred_val = mov_dict[mov][pred]
+        
+        mov_to_label[mov] = max_pred
+
+    return mov_to_label
+
+"""
+Returns the fraction of correctly labeled movies
+"""
+def test_accuracy(pred_dict, label_dict):
+
+    correct = 0
+
+    for mov in pred_dict.keys():
+        if pred_dict[mov] == label_dict[mov]:
+            correct += 1
+
+    return correct / len(pred_dict)
+
+"""
+Converts genre categories from onehot labels back to genre strings
+"""
+def convert_onehot_to_genre(pred_dict, label_dict, num_to_genre):
+
+    for mov in pred_dict.keys():
+        pred_dict[mov] = num_to_genre[pred_dict[mov]]
+        label_dict[mov] = num_to_genre[label_dict[mov]]
+    
+    return pred_dict, label_dict
+
+def run_model():
+    X_train, X_test, y_train, y_test, encoder = load_framedata() # loads in data from preprocess
+
+    # Used to convert from onehot labels back to genre strings
+    num_to_genre = {}
+    for i, genre in encoder.categories_:
+        num_to_genre[i] = genre
+        print(genre, i)
+
+    train_generator = dataGenerator(X_train, y_train, batch_size=32) # see datagenerator class
+    test_generator = dataGenerator(X_test, y_test, batch_size=32)
 
     model = setup_model((128, 176), num_classes=24)
     model.fit_generator(train_generator, epochs=1, verbose=1)
 
-    model.save('model_1')
+    model.save('model_1.h5')
 
     print('------- Testing model -------')
 
-    score = model.evaluate_generator(test_generator)
-    print("Test Metrics: ", score)
+    # score = model.evaluate_generator(test_generator)
+    # print("Test Metrics: ", score)
+
+    frame_preds = model.predict_generator(test_generator) # generate prediction labels on the frames
+    
+    pred_dict = movie_preds(X_test, frame_preds) # movie -> genre (onehot)
+    label_dict = movie_preds(X_test, y_test) # movie -> genre (onehot)
+
+    print('Test Accuracy predicting Movie Genres: ', test_accuracy(pred_dict, label_dict)) # accuracy
+
+    pred_dict, label_dict = convert_onehot_to_genre(pred_dict, label_dict, num_to_genre)
+    
+    print('Movie\tPredicted\tActual')
+
+    for mov in pred_dict.keys():
+        print("%s\t%s\t%s", mov, pred_dict[mov], label_dict[mov])
+
 
 if __name__ == "__main__":
     # setup_model()

@@ -6,6 +6,7 @@ import tensorflow as tf
 import numpy as np
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.model_selection import train_test_split
+from sklearn.utils import shuffle
 
 """
 Casts inputs as filepaths to images, and labels as onehotencoded arrays
@@ -43,4 +44,37 @@ def load_framedata(path="./data/frame-genre-map.txt", train_ratio=1):
         labels = enc.transform(labels).toarray()
 
         # SKlearn train_test_split. Automatically shuffles the data
-        return train_test_split(inputs, labels, test_size=0.2, random_state=42)
+        return train_test_split(inputs, labels, test_size=0.2, random_state=42), enc
+
+def split_on_movie(path="./data/frame-genre-map.txt"):
+    try:
+        os.stat(path)
+    except:
+        print("error: frame to genre map file not found; aborting")
+        return None
+
+    inputs = []
+    labels = []
+
+    with open(path) as map:
+        # genre as labels
+        for i, mapping in enumerate(map):
+            frame_path, genres = mapping.split('\t')
+            genres = genres.strip()
+            genres = genres.split(',')
+
+            inputs.append(frame_path)
+            labels.append([genres[0]])
+            #labels.append([genres[1]])
+
+        # onehotencoding labels, needs to be edited for multiclass
+        enc = OneHotEncoder()
+        enc.fit(labels)
+        labels = enc.transform(labels).toarray()
+
+        # ~80% at 93977
+        X_train, y_train, X_test, y_test = inputs[:93977], labels[:93977], inputs[93977:], labels[93977:]
+
+        X_train, y_train = shuffle(X_train, y_train)
+
+        return X_train, X_test, y_train, y_test, enc

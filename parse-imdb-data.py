@@ -62,6 +62,7 @@ def populate_genre_map_dict(only_first_genre=False):
                     genre_map_dict[movie_title] = genres.split(',')[0].strip()
                 else:
                     genre_map_dict[movie_title] = genres.strip()
+        
         print("finished populating genre dict.")
     except:
         print("error: genre-map.txt could not be found; aborting")
