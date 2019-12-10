@@ -60,7 +60,7 @@ returns a map from movie to the predicted genre for that movie (onehot)
 """
 def movie_preds(inputs, frame_preds):
 
-    mov_dict = {}
+    mov_dict = dict()
 
     for i in range(len(inputs)):
         path = inputs[i]
@@ -175,14 +175,20 @@ def run_model(multiclass=True):
     #print(np.min(img[0]))
     #print(y_test[0:20])
 
+
+
     model = setup_model((128, 176), num_classes=28)
 
     try:
         os.stat('./model_1.h5')
-        print("loading model...")
+        print("existing model found; loading model...")
         model = load_model('./model_1.h5')
     except:
         print("no preloaded model. training model...")
+        if multiclass:
+            model = setup_model((128, 176), num_classes=28)
+        else:
+            model = setup_model((128, 176), num_classes=24)
         model.fit_generator(train_generator, epochs=1, verbose=1)
         print("saving model...")
         model.save('model_1.h5')
@@ -215,21 +221,22 @@ def run_model(multiclass=True):
         print("top 3 genre accuracy: ")
         print(top)
     else:
-        pred_dict = movie_preds(X_test, frame_preds) # movie -> genre (onehot)
+        pred_dict = movie_preds(X_test, frame_preds.flatten()) # movie -> genre (onehot)
         label_dict = movie_preds(X_test, y_test) # movie -> genre (onehot)
 
         print('Test Accuracy predicting Movie Genres: ', test_accuracy(pred_dict, label_dict)) # accuracy
-
-        pred_dict, label_dict = convert_onehot_to_genre(pred_dict, label_dict, num_to_genre)
-
-        print('Movie\tPredicted\tActual')
-
-        for mov in pred_dict.keys():
-            print("%s\t%s\t%s", mov, pred_dict[mov], label_dict[mov])
+        #
+        # pred_dict, label_dict = convert_onehot_to_genre(pred_dict, label_dict, num_to_genre)
+        #
+        # print('Movie\tPredicted\tActual')
+        #
+        # for mov in pred_dict.keys():
+        #     print("%s\t%s\t%s", mov, pred_dict[mov], label_dict[mov])
 
 
 if __name__ == "__main__":
     # setup_model()
-    gpu_available = tf.test.is_gpu_available()
-    print("GPU Available: ", gpu_available)
-    run_model(multiclass=True)
+    with tf.device('/gpu:0'):
+        gpu_available = tf.test.is_gpu_available()
+        print("GPU Available: ", gpu_available)
+        run_model(multiclass=True)
