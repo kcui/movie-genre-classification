@@ -43,8 +43,10 @@ def load_framedata(path="./data/frame-genre-map.txt", train_ratio=1):
         enc.fit(labels)
         labels = enc.transform(labels).toarray()
 
+        X_train, X_test, y_train, y_test = train_test_split(inputs, labels, test_size=0.2, random_state=42)
+
         # SKlearn train_test_split. Automatically shuffles the data
-        return train_test_split(inputs, labels, test_size=0.2, random_state=42), enc
+        return X_train, X_test, y_train, y_test, enc
 
 def split_on_movie(path="./data/frame-genre-map.txt"):
     try:

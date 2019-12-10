@@ -5,7 +5,7 @@ import pickle
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense, Activation, Conv2D, MaxPooling2D, Dropout, Flatten
 from tensorflow.keras.optimizers import Adam
-from preprocess import load_framedata
+from preprocess import load_framedata, split_on_movie
 from dataGenerator import dataGenerator
 
 
@@ -115,13 +115,15 @@ def convert_onehot_to_genre(pred_dict, label_dict, num_to_genre):
     return pred_dict, label_dict
 
 def run_model():
-    X_train, X_test, y_train, y_test, encoder = load_framedata() # loads in data from preprocess
+    # X_train, X_test, y_train, y_test, encoder = load_framedata() # loads in data from preprocess
+    X_train, X_test, y_train, y_test, encoder = split_on_movie()
 
     # Used to convert from onehot labels back to genre strings
+
+    cats = encoder.categories_[0]
     num_to_genre = {}
-    for i, genre in encoder.categories_:
+    for i, genre in enumerate(cats):
         num_to_genre[i] = genre
-        print(genre, i)
 
     train_generator = dataGenerator(X_train, y_train, batch_size=32) # see datagenerator class
     test_generator = dataGenerator(X_test, y_test, batch_size=32)
@@ -144,7 +146,7 @@ def run_model():
     print('Test Accuracy predicting Movie Genres: ', test_accuracy(pred_dict, label_dict)) # accuracy
 
     pred_dict, label_dict = convert_onehot_to_genre(pred_dict, label_dict, num_to_genre)
-    
+
     print('Movie\tPredicted\tActual')
 
     for mov in pred_dict.keys():
