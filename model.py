@@ -115,11 +115,7 @@ def convert_onehot_to_genre(pred_dict, label_dict, num_to_genre):
 
     return pred_dict, label_dict
 
-<<<<<<< HEAD
-def run_model(load_model=False):
-=======
 def run_model(multiclass=True):
->>>>>>> 994ddca32c85c117f3048e32e393ef8578b81f4a
     # X_train, X_test, y_train, y_test, encoder = load_framedata() # loads in data from preprocess
     X_train, X_test, y_train, y_test, encoder = split_on_movie()
 
@@ -178,4 +174,4 @@ if __name__ == "__main__":
     with tf.device('/gpu:0'):
         gpu_available = tf.test.is_gpu_available()
         print("GPU Available: ", gpu_available)
-        run_model(load_model=True)
+        run_model()
