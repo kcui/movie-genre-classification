@@ -150,13 +150,8 @@ def run_model(multiclass=True):
     # print("Test Metrics: ", score)
 
     frame_preds = model.predict_generator(test_generator) # generate prediction labels on the frames
-<<<<<<< HEAD
     
     pred_dict = movie_preds(X_test, frame_preds.flatten()) # movie -> genre (onehot)
-=======
-
-    pred_dict = movie_preds(X_test, frame_preds) # movie -> genre (onehot)
->>>>>>> c8fe6d0dad45c8094c31cbfd76f027b7ba2af2dc
     label_dict = movie_preds(X_test, y_test) # movie -> genre (onehot)
 
     print('Test Accuracy predicting Movie Genres: ', test_accuracy(pred_dict, label_dict)) # accuracy
