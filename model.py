@@ -1,6 +1,7 @@
 import tensorflow as tf
 import numpy as np
 import pickle
+import os
 
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense, Activation, Conv2D, MaxPooling2D, Dropout, Flatten
@@ -59,7 +60,7 @@ returns a map from movie to the predicted genre for that movie (onehot)
 """
 def movie_preds(inputs, frame_preds):
 
-    mov_dict = {}
+    mov_dict = dict()
 
     for i in range(len(inputs)):
         path = inputs[i]
@@ -114,7 +115,7 @@ def convert_onehot_to_genre(pred_dict, label_dict, num_to_genre):
     
     return pred_dict, label_dict
 
-def run_model():
+def run_model(load_model=False):
     # X_train, X_test, y_train, y_test, encoder = load_framedata() # loads in data from preprocess
     X_train, X_test, y_train, y_test, encoder = split_on_movie()
 
@@ -127,11 +128,14 @@ def run_model():
 
     train_generator = dataGenerator(X_train, y_train, batch_size=32) # see datagenerator class
     test_generator = dataGenerator(X_test, y_test, batch_size=32)
+    
+    if load_model == False:
+        model = setup_model((128, 176), num_classes=24)
+        model.fit_generator(train_generator, epochs=1, verbose=1)
 
-    model = setup_model((128, 176), num_classes=24)
-    model.fit_generator(train_generator, epochs=1, verbose=1)
-
-    model.save('model_1.h5')
+        model.save('model_1.h5')
+    else:
+        model = tf.keras.models.load_model('model_1.h5')
 
     print('------- Testing model -------')
 
@@ -155,6 +159,7 @@ def run_model():
 
 if __name__ == "__main__":
     # setup_model()
-    gpu_available = tf.test.is_gpu_available()
-    print("GPU Available: ", gpu_available)
-    run_model()
+    with tf.device('/gpu:0'):
+        gpu_available = tf.test.is_gpu_available()
+        print("GPU Available: ", gpu_available)
+        run_model(load_model=True)
