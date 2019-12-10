@@ -2,3 +2,4 @@ film-grab/
 .DS_Store
 *.basics.tsv
 __pycache__/
+model_1*
