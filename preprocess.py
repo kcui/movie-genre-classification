@@ -4,7 +4,7 @@ import unicodedata
 import os
 import tensorflow as tf
 import numpy as np
-from sklearn.preprocessing import OneHotEncoder
+from sklearn.preprocessing import OneHotEncoder, MultiLabelBinarizer
 from sklearn.model_selection import train_test_split
 from sklearn.utils import shuffle
 
@@ -48,7 +48,7 @@ def load_framedata(path="./data/frame-genre-map.txt", train_ratio=1):
         # SKlearn train_test_split. Automatically shuffles the data
         return X_train, X_test, y_train, y_test, enc
 
-def split_on_movie(path="./data/frame-genre-map.txt"):
+def split_on_movie(path="./data/frame-genre-map.txt", multiclass=True):
     try:
         os.stat(path)
     except:
@@ -66,13 +66,20 @@ def split_on_movie(path="./data/frame-genre-map.txt"):
             genres = genres.split(',')
 
             inputs.append(frame_path)
-            labels.append([genres[0]])
-            #labels.append([genres[1]])
+            if multiclass:
+                labels.append(genres) # multiclass
+            else:
+                labels.append([genres[0]]) #single class
 
         # onehotencoding labels, needs to be edited for multiclass
-        enc = OneHotEncoder()
-        enc.fit(labels)
-        labels = enc.transform(labels).toarray()
+        if multiclass:
+            enc = MultiLabelBinarizer()
+            labels = enc.fit_transform(labels)
+        else:
+            enc = OneHotEncoder()
+            enc.fit(labels)
+            labels = enc.transform(labels).toarray()
+        print(len(labels[0]))
 
         # ~80% at 93977
         X_train, y_train, X_test, y_test = inputs[:93977], labels[:93977], inputs[93977:], labels[93977:]
