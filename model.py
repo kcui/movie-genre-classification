@@ -2,6 +2,7 @@ import tensorflow as tf
 import numpy as np
 import pickle
 import os
+import sys
 
 from tensorflow.keras.models import Sequential, load_model
 from tensorflow.keras.layers import Dense, Activation, Conv2D, MaxPooling2D, Dropout, Flatten
@@ -64,7 +65,7 @@ def movie_preds(inputs, frame_preds):
 
     for i in range(len(inputs)):
         path = inputs[i]
-        pred = frame_preds[i]
+        pred = np.argmax(frame_preds[i])
 
         mov = path.split('/')[2]
         if mov not in mov_dict:
@@ -154,9 +155,12 @@ def convert_onehot_to_genre(pred_dict, label_dict, num_to_genre):
     return pred_dict, label_dict
 
 def run_model(multiclass=True):
-    X_train, X_test, y_train, y_test, encoder = load_framedata(multiclass) # loads in data from preprocess
-    # X_train, X_test, y_train, y_test, encoder = split_on_movie()
+    # X_train, X_test, y_train, y_test, encoder = load_framedata(multiclass) # loads in data from preprocess
+    X_train, X_test, y_train, y_test, encoder = split_on_movie(multiclass=False)
     # Used to convert from onehot labels back to genre strings
+
+    # print(y_test)
+    # print(sum(y_test))
 
     if multiclass:
         cats = encoder.classes_
@@ -169,15 +173,12 @@ def run_model(multiclass=True):
 
     train_generator = dataGenerator(X_train, y_train, batch_size=32) # see datagenerator class
     test_generator = dataGenerator(X_test, y_test, batch_size=32)
-    #test_generator = dataGenerator(X_test[0:20], y_test[0:20], batch_size=32)
-    #img, label = train_generator.__getitem__(0)
-    #print(img[0])
-    #print(np.min(img[0]))
-    #print(y_test[0:20])
-
-
-
-    model = setup_model((128, 176), num_classes=28)
+    # test_generator = dataGenerator(X_test[0:20], y_test[0:20], batch_size=32)
+    # img, label = test_generator.__getitem__(0)
+    # print(img[0])
+    # print(np.min(img[0]))
+    # print(X_test[0:20])
+    # print(y_test[0:20])
 
     try:
         os.stat('./model_1.h5')
@@ -195,11 +196,15 @@ def run_model(multiclass=True):
 
     print('------- Testing model -------')
 
-    # score = model.evaluate_generator(test_generator)
-    # print("Test Metrics: ", score)
+    score = model.evaluate_generator(test_generator, verbose=1)
+    print("Test Metrics: ", score)
+    np.set_printoptions(threshold=sys.maxsize)
 
-    frame_preds = model.predict_generator(test_generator) # generate prediction labels on the frames
+    frame_preds = model.predict_generator(test_generator, verbose=1) # generate prediction labels on the frames
+
     print(frame_preds.shape)
+    print(frame_preds)
+    print(np.argmax(frame_preds, axis=1))
 
     if multiclass:
         # categorical accuracy
@@ -226,17 +231,24 @@ def run_model(multiclass=True):
 
         print('Test Accuracy predicting Movie Genres: ', test_accuracy(pred_dict, label_dict)) # accuracy
         #
-        # pred_dict, label_dict = convert_onehot_to_genre(pred_dict, label_dict, num_to_genre)
-        #
-        # print('Movie\tPredicted\tActual')
-        #
-        # for mov in pred_dict.keys():
-        #     print("%s\t%s\t%s", mov, pred_dict[mov], label_dict[mov])
+        pred_dict, label_dict = convert_onehot_to_genre(pred_dict, label_dict, num_to_genre)
+        
+        print('Movie\tPredicted\tActual')
+        
+        for mov in pred_dict.keys():
+            print("%s\t%s\t%s" % (mov, pred_dict[mov], label_dict[mov]))
 
 
 if __name__ == "__main__":
     # setup_model()
-    with tf.device('/gpu:0'):
-        gpu_available = tf.test.is_gpu_available()
-        print("GPU Available: ", gpu_available)
-        run_model(multiclass=True)
+
+    # Kyle uncomment this to use your GPU
+
+    # with tf.device('/gpu:0'):
+    #     gpu_available = tf.test.is_gpu_available()
+    #     print("GPU Available: ", gpu_available)
+    #     run_model(multiclass=False)
+
+    gpu_available = tf.test.is_gpu_available()
+    print("GPU Available: ", gpu_available)
+    run_model(multiclass=False)

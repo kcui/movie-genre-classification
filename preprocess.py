@@ -30,6 +30,7 @@ def load_framedata(multiclass, path="./data/frame-genre-map.txt", train_ratio=1)
     with open(path) as map:
         # genre as labels
         for i, mapping in enumerate(map):
+            print("hey")
             frame_path, genres = mapping.split('\t')
             genres = genres.strip()
             genres = genres.split(',')
@@ -65,7 +66,7 @@ def split_on_movie(path="./data/frame-genre-map.txt", multiclass=True):
 
     with open(path) as map:
         # genre as labels
-        for i, mapping in enumerate(map):
+        for mapping in map:
             frame_path, genres = mapping.split('\t')
             genres = genres.strip()
             genres = genres.split(',')
@@ -84,11 +85,12 @@ def split_on_movie(path="./data/frame-genre-map.txt", multiclass=True):
             enc.fit(labels)
             labels = enc.transform(labels).toarray()
 
-        inputs, labels = shuffle(inputs, labels)
         # ~80% at 93977
-        X_train, y_train, X_test, y_test = inputs[:93977], labels[:93977], inputs[93977:], labels[93977:]
+        X_train, y_train, X_test, y_test = inputs[:93977], labels[:93977], inputs[93977:95000], labels[93977:95000]
+        
+        # X_train, y_train = shuffle(X_train, y_train)
 
-        #X_train, y_train = shuffle(X_train, y_train)
-        #X_test, y_test = shuffle(X_test, y_test)
+        X_train, y_train = shuffle(X_train, y_train)
+        X_test, y_test = shuffle(X_test, y_test)
 
         return X_train, X_test, y_train, y_test, enc

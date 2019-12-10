@@ -22,6 +22,9 @@ class dataGenerator(Sequence):
         batch_x = self.x[idx * self.batch_size:(idx + 1) * self.batch_size]
         batch_y = self.y[idx * self.batch_size:(idx + 1) * self.batch_size]
 
-        return np.array([
+        x = np.array([
             resize(imread(file_name), (128, 176, 3))
-               for file_name in batch_x], dtype=np.float32), np.array(batch_y)
+               for file_name in batch_x], dtype=np.float32)
+        y = np.array(batch_y)
+
+        return x, y
