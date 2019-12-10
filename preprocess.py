@@ -16,7 +16,7 @@ returns X_train, X_test, y_train, y_test
 OneHotEncoding needs to be adjusted for multiclass
 """
 # dropout in model
-def load_framedata(path="./data/frame-genre-map.txt", train_ratio=1):
+def load_framedata(multiclass, path="./data/frame-genre-map.txt", train_ratio=1):
     # TODO: implement drop_rate, test/train split
     # check if the mapping file is available
     try:
@@ -35,13 +35,18 @@ def load_framedata(path="./data/frame-genre-map.txt", train_ratio=1):
             genres = genres.split(',')
 
             inputs.append(frame_path)
-            labels.append([genres[0]])
-            #labels.append([genres[1]])
+            if multiclass:
+                labels.append(genres) # multiclass
+            else:
+                labels.append([genres[0]]) #single class
 
-        # onehotencoding labels, needs to be editted for multiclass
-        enc = OneHotEncoder()
-        enc.fit(labels)
-        labels = enc.transform(labels).toarray()
+        if multiclass:
+            enc = MultiLabelBinarizer()
+            labels = enc.fit_transform(labels)
+        else:
+            enc = OneHotEncoder()
+            enc.fit(labels)
+            labels = enc.transform(labels).toarray()
 
         X_train, X_test, y_train, y_test = train_test_split(inputs, labels, test_size=0.2, random_state=42)
 
@@ -71,7 +76,6 @@ def split_on_movie(path="./data/frame-genre-map.txt", multiclass=True):
             else:
                 labels.append([genres[0]]) #single class
 
-        # onehotencoding labels, needs to be edited for multiclass
         if multiclass:
             enc = MultiLabelBinarizer()
             labels = enc.fit_transform(labels)
@@ -79,11 +83,12 @@ def split_on_movie(path="./data/frame-genre-map.txt", multiclass=True):
             enc = OneHotEncoder()
             enc.fit(labels)
             labels = enc.transform(labels).toarray()
-        print(len(labels[0]))
 
+        inputs, labels = shuffle(inputs, labels)
         # ~80% at 93977
         X_train, y_train, X_test, y_test = inputs[:93977], labels[:93977], inputs[93977:], labels[93977:]
 
-        X_train, y_train = shuffle(X_train, y_train)
+        #X_train, y_train = shuffle(X_train, y_train)
+        #X_test, y_test = shuffle(X_test, y_test)
 
         return X_train, X_test, y_train, y_test, enc

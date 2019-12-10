@@ -1,6 +1,7 @@
 import tensorflow as tf
 import numpy as np
 import pickle
+import os
 
 from tensorflow.keras.models import Sequential, load_model
 from tensorflow.keras.layers import Dense, Activation, Conv2D, MaxPooling2D, Dropout, Flatten
@@ -46,7 +47,7 @@ def setup_model(shape, num_classes):
     model.add(Dropout(0.4))
     model.add(Dense(num_classes, activation='sigmoid'))
 
-    adam = Adam() # tune adam parameters possibly
+    adam = Adam(learning_rate=0.0001, beta_1=0.5, beta_2=0.999) # tune adam parameters possibly
     model.compile(loss='categorical_crossentropy', optimizer=adam, metrics=['accuracy'])
     model.summary()
 
@@ -91,6 +92,44 @@ def movie_preds(inputs, frame_preds):
     return mov_to_label
 
 """
+Compute hamming score for multilabel predictions
+"""
+def hamming_score(y_pred, y_true):
+    acc_list = []
+    for i in range(y_true.shape[0]):
+        set_true = set(np.where(y_true[i])[0])
+        set_pred = set(np.where(y_pred[i])[0])
+        curr_acc = None
+        if len(set_true) == 0 and len(set_pred) == 0:
+            curr_acc = 1
+        else:
+            curr_acc = len(set_true.intersection(set_pred))/\
+                    float(len(set_true.union(set_pred)))
+        acc_list.append(curr_acc)
+    return np.mean(acc_list)
+
+def top_genre_accuracy(y_pred, y_true):
+    sum = 0
+    for i in range(y_true.shape[0]):
+        curr_sum = np.sum(np.equal(y_pred[i],y_true[i]))
+        curr_sum /=3
+        sum += curr_sum
+    return sum / y_true.shape[0]
+
+"""
+Return top 3 predicted genres from probabilities as one-hot labels
+"""
+
+def probs_to_preds(probs):
+    preds = np.zeros_like(probs)
+    for i in range(probs.shape[0]):
+        top3 = probs[i].argsort()[-3:][::-1]
+        temp = np.zeros(probs.shape[1])
+        pred = np.put(temp, top3, 1)
+        preds[i] = pred
+    return preds
+
+"""
 Returns the fraction of correctly labeled movies
 """
 def test_accuracy(pred_dict, label_dict):
@@ -115,9 +154,8 @@ def convert_onehot_to_genre(pred_dict, label_dict, num_to_genre):
     return pred_dict, label_dict
 
 def run_model(multiclass=True):
-    # X_train, X_test, y_train, y_test, encoder = load_framedata() # loads in data from preprocess
-    X_train, X_test, y_train, y_test, encoder = split_on_movie()
-
+    X_train, X_test, y_train, y_test, encoder = load_framedata(multiclass) # loads in data from preprocess
+    # X_train, X_test, y_train, y_test, encoder = split_on_movie()
     # Used to convert from onehot labels back to genre strings
 
     if multiclass:
@@ -131,12 +169,17 @@ def run_model(multiclass=True):
 
     train_generator = dataGenerator(X_train, y_train, batch_size=32) # see datagenerator class
     test_generator = dataGenerator(X_test, y_test, batch_size=32)
+    #test_generator = dataGenerator(X_test[0:20], y_test[0:20], batch_size=32)
+    #img, label = train_generator.__getitem__(0)
+    #print(img[0])
+    #print(np.min(img[0]))
+    #print(y_test[0:20])
 
     model = setup_model((128, 176), num_classes=28)
 
     try:
-        os.stat('/model_1.h5')
-        print("loading model..")
+        os.stat('./model_1.h5')
+        print("loading model...")
         model = load_model('./model_1.h5')
     except:
         print("no preloaded model. training model...")
@@ -150,22 +193,43 @@ def run_model(multiclass=True):
     # print("Test Metrics: ", score)
 
     frame_preds = model.predict_generator(test_generator) # generate prediction labels on the frames
+    print(frame_preds.shape)
 
-    pred_dict = movie_preds(X_test, frame_preds) # movie -> genre (onehot)
-    label_dict = movie_preds(X_test, y_test) # movie -> genre (onehot)
+    if multiclass:
+        # categorical accuracy
+        acc = tf.keras.metrics.CategoricalAccuracy()
+        # idxs = np.argsort(frame_preds)[::-1][:3]
+        acc.update_state(frame_preds, y_test)
+        result = acc.result()
+        print("categorical accuracy: ")
+        print(result)
 
-    print('Test Accuracy predicting Movie Genres: ', test_accuracy(pred_dict, label_dict)) # accuracy
+        # hamming score
+        preds = probs_to_preds(frame_preds)
+        score = hamming_score(preds, y_test)
+        print("hamming score: ")
+        print(score)
 
-    pred_dict, label_dict = convert_onehot_to_genre(pred_dict, label_dict, num_to_genre)
+        # top genre only
+        top = top_genre_accuracy(preds, y_test)
+        print("top 3 genre accuracy: ")
+        print(top)
+    else:
+        pred_dict = movie_preds(X_test, frame_preds) # movie -> genre (onehot)
+        label_dict = movie_preds(X_test, y_test) # movie -> genre (onehot)
 
-    print('Movie\tPredicted\tActual')
+        print('Test Accuracy predicting Movie Genres: ', test_accuracy(pred_dict, label_dict)) # accuracy
 
-    for mov in pred_dict.keys():
-        print("%s\t%s\t%s", mov, pred_dict[mov], label_dict[mov])
+        pred_dict, label_dict = convert_onehot_to_genre(pred_dict, label_dict, num_to_genre)
+
+        print('Movie\tPredicted\tActual')
+
+        for mov in pred_dict.keys():
+            print("%s\t%s\t%s", mov, pred_dict[mov], label_dict[mov])
 
 
 if __name__ == "__main__":
     # setup_model()
     gpu_available = tf.test.is_gpu_available()
     print("GPU Available: ", gpu_available)
-    run_model()
+    run_model(multiclass=True)
