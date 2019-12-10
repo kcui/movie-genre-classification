@@ -2,7 +2,7 @@ import tensorflow as tf
 import numpy as np
 import pickle
 
-from tensorflow.keras.models import Sequential
+from tensorflow.keras.models import Sequential, load_model
 from tensorflow.keras.layers import Dense, Activation, Conv2D, MaxPooling2D, Dropout, Flatten
 from tensorflow.keras.optimizers import Adam
 from preprocess import load_framedata, split_on_movie
@@ -44,7 +44,7 @@ def setup_model(shape, num_classes):
     model.add(Dropout(0.4))
     model.add(Dense(2048, activation='relu'))
     model.add(Dropout(0.4))
-    model.add(Dense(num_classes, activation='softmax'))
+    model.add(Dense(num_classes, activation='sigmoid'))
 
     adam = Adam() # tune adam parameters possibly
     model.compile(loss='categorical_crossentropy', optimizer=adam, metrics=['accuracy'])
@@ -68,14 +68,14 @@ def movie_preds(inputs, frame_preds):
         mov = path.split('/')[2]
         if mov not in mov_dict:
             mov_dict[mov] = {}
-        
+
         if pred not in mov_dict[mov]:
             mov_dict[mov][pred] = 1
         else:
             mov_dict[mov][pred] += 1
 
     mov_to_label = {}
-    
+
     # currently assigns the most frequently predicted genre to the movie
     for mov in mov_dict.keys():
         max_pred = None
@@ -85,7 +85,7 @@ def movie_preds(inputs, frame_preds):
             if mov_dict[mov][pred] > max_pred_val:
                 max_pred = pred
                 max_pred_val = mov_dict[mov][pred]
-        
+
         mov_to_label[mov] = max_pred
 
     return mov_to_label
@@ -111,16 +111,20 @@ def convert_onehot_to_genre(pred_dict, label_dict, num_to_genre):
     for mov in pred_dict.keys():
         pred_dict[mov] = num_to_genre[pred_dict[mov]]
         label_dict[mov] = num_to_genre[label_dict[mov]]
-    
+
     return pred_dict, label_dict
 
-def run_model():
+def run_model(multiclass=True):
     # X_train, X_test, y_train, y_test, encoder = load_framedata() # loads in data from preprocess
     X_train, X_test, y_train, y_test, encoder = split_on_movie()
 
     # Used to convert from onehot labels back to genre strings
 
-    cats = encoder.categories_[0]
+    if multiclass:
+        cats = encoder.classes_
+        print(cats)
+    else:
+        cats = encoder.categories_[0]
     num_to_genre = {}
     for i, genre in enumerate(cats):
         num_to_genre[i] = genre
@@ -128,10 +132,17 @@ def run_model():
     train_generator = dataGenerator(X_train, y_train, batch_size=32) # see datagenerator class
     test_generator = dataGenerator(X_test, y_test, batch_size=32)
 
-    model = setup_model((128, 176), num_classes=24)
-    model.fit_generator(train_generator, epochs=1, verbose=1)
+    model = setup_model((128, 176), num_classes=28)
 
-    model.save('model_1.h5')
+    try:
+        os.stat('/model_1.h5')
+        print("loading model..")
+        model = load_model('./model_1.h5')
+    except:
+        print("no preloaded model. training model...")
+        model.fit_generator(train_generator, epochs=1, verbose=1)
+        print("saving model...")
+        model.save('model_1.h5')
 
     print('------- Testing model -------')
 
@@ -139,8 +150,13 @@ def run_model():
     # print("Test Metrics: ", score)
 
     frame_preds = model.predict_generator(test_generator) # generate prediction labels on the frames
+<<<<<<< HEAD
     
     pred_dict = movie_preds(X_test, frame_preds.flatten()) # movie -> genre (onehot)
+=======
+
+    pred_dict = movie_preds(X_test, frame_preds) # movie -> genre (onehot)
+>>>>>>> c8fe6d0dad45c8094c31cbfd76f027b7ba2af2dc
     label_dict = movie_preds(X_test, y_test) # movie -> genre (onehot)
 
     print('Test Accuracy predicting Movie Genres: ', test_accuracy(pred_dict, label_dict)) # accuracy
