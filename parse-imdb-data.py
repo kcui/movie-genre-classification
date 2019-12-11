@@ -19,6 +19,7 @@ imdb_data_path = './title.basics.tsv'
 movie_titles_path = './data/movie-titles.txt'
 genre_map_path = './data/genre-map.txt'
 frame_genre_map_path = './data/frame-genre-map.txt'
+norm_frame_genre_map_path = './data/norm-frame-genre-map.txt'
 
 frames_path = args.frames_path
 
@@ -82,7 +83,17 @@ def construct_frame_genre_map(only_first_genre=False):
                 if movie_title in genre_map_dict:
                     map.write("%s\t%s\n" % (os.path.join(dirpath, filename), genre_map_dict[movie_title]))
     print("done constructing frame genre map (stored in data/frame-genre-map.txt).")
-    
+
+# def construct_norm_frame_genre_map():
+#     if len(genre_map_dict) == 0:
+#         populate_genre_map_dict()
+#     print("constructing normalized frame genre map...")
+#     with open(norm_frame_genre_map_path, 'w') as map:
+#         for (dirpath, _, filenames) in os.walk(frames_path):
+#             for filename in filenames:
+#                 movie_title = os.path.basename(dirpath)
+#                 if movie_title in genre_map_dict:
+#                     map.write("%s\t%s\n" % (os.path.join(dirpath, filename), genre_map_dict[movie_title]))
 
 
 if __name__ == "__main__":

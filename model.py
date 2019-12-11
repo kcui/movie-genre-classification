@@ -7,7 +7,7 @@ import sys
 from tensorflow.keras.models import Sequential, load_model
 from tensorflow.keras.layers import Dense, Activation, Conv2D, MaxPooling2D, Dropout, Flatten
 from tensorflow.keras.optimizers import Adam
-from preprocess import load_framedata, split_on_movie
+from preprocess import load_framedata, split_on_movie, split_on_movie_normalized
 from dataGenerator import dataGenerator
 
 
@@ -154,9 +154,12 @@ def convert_onehot_to_genre(pred_dict, label_dict, num_to_genre):
 
     return pred_dict, label_dict
 
-def run_model(multiclass=True):
+def run_model(multiclass=True, normalized=True):
     # X_train, X_test, y_train, y_test, encoder = load_framedata(multiclass) # loads in data from preprocess
-    X_train, X_test, y_train, y_test, encoder = split_on_movie(multiclass)
+    if normalized:
+        X_train, X_test, y_train, y_test, encoder = split_on_movie_normalized()
+    else:
+        X_train, X_test, y_train, y_test, encoder = split_on_movie(multiclass=multiclass)
     # Used to convert from onehot labels back to genre strings
 
     # print(y_test)
@@ -197,6 +200,7 @@ def run_model(multiclass=True):
     print('------- Testing model -------')
 
     # score = model.evaluate_generator(test_generator, verbose=1)
+    # exit()
     # print("Test Metrics: ", score)
     # np.set_printoptions(threshold=sys.maxsize)
 
