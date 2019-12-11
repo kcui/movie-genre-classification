@@ -156,10 +156,16 @@ def convert_onehot_to_genre(pred_dict, label_dict, num_to_genre):
 
 def run_model(multiclass=True, normalized=True):
     # X_train, X_test, y_train, y_test, encoder = load_framedata(multiclass) # loads in data from preprocess
+    num_classes=11
+
     if normalized:
         X_train, X_test, y_train, y_test, encoder = split_on_movie_normalized()
     else:
         X_train, X_test, y_train, y_test, encoder = split_on_movie(multiclass=multiclass)
+        if multiclass:
+            num_classes=28
+        else:
+            num_classes=24
     # Used to convert from onehot labels back to genre strings
 
     # print(y_test)
@@ -184,15 +190,15 @@ def run_model(multiclass=True, normalized=True):
     # print(y_test[0:20])
 
     try:
-        os.stat('./model_1.h5')
+        os.stat('./model_14.h5')
         print("existing model found; loading model...")
         model = load_model('./model_1.h5')
     except:
         print("no preloaded model. training model...")
         if multiclass:
-            model = setup_model((128, 176), num_classes=28)
+            model = setup_model((128, 176), num_classes=num_classes)
         else:
-            model = setup_model((128, 176), num_classes=24)
+            model = setup_model((128, 176), num_classes=num_classes)
         model.fit_generator(train_generator, epochs=1, verbose=1)
         print("saving model...")
         model.save('model_1.h5')

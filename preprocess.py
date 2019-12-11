@@ -128,9 +128,9 @@ def split_on_movie_normalized(path="./data/frame-genre-map.txt", movies_per_genr
                     genre_to_movie[genre].add(mov)
                     break
 
-    for key in genre_to_movie.keys():
-        print(key, len(genre_to_movie[key]))
-        print(genre_to_movie[key])
+    # for key in genre_to_movie.keys():
+    #     print(key, len(genre_to_movie[key]))
+    #     print(genre_to_movie[key])
 
     with open(path) as map:
         # genre as labels
@@ -142,6 +142,8 @@ def split_on_movie_normalized(path="./data/frame-genre-map.txt", movies_per_genr
             mov = frame_path.split('/')[2]
             
             for genre in genres:
+                if genre not in genre_to_movie:
+                    continue
                 if mov in genre_to_movie[genre]:
                     inputs.append(frame_path)
                     labels.append([genre]) #single class
