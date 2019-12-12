@@ -109,10 +109,12 @@ returns a map from movie to the predicted genre for that movie (onehot)
 def movie_preds(inputs, frame_preds):
 
     mov_dict = dict()
+    print(frame_preds.shape)
+    print(len(inputs))
 
     for i in range(len(inputs)):
         path = inputs[i]
-        pred = np.argmax(frame_preds[i])
+        pred = frame_preds[i]
 
         mov = path.split('/')[2]
         if mov not in mov_dict:
@@ -203,11 +205,10 @@ def convert_onehot_to_genre(pred_dict, label_dict, num_to_genre):
 
 def run_model(multiclass=True, normalized=True):
     # X_train, X_test, y_train, y_test, encoder = load_framedata(multiclass) # loads in data from preprocess
-    num_classes = 11
+    num_classes = 4
 
     if normalized:
         X_train, X_test, y_train, y_test, encoder = split_on_movie_normalized()
-        num_classes = 11
     else:
         X_train, X_test, y_train, y_test, encoder = split_on_movie(multiclass=multiclass)
         if multiclass:
@@ -300,9 +301,19 @@ def run_model(multiclass=True, normalized=True):
     else:
         true_labels = [np.where(r==1)[0][0] for r in y_test]
         predicted_labels = np.argmax(frame_preds, axis=1)
-        print(sklearn.metrics.accuracy_score(true_labels[0:64], predicted_labels))
-        pred_dict = movie_preds(X_test, frame_preds.flatten()) # movie -> genre (onehot)
-        label_dict = movie_preds(X_test, y_test) # movie -> genre (onehot)
+        # print(sklearn.metrics.accuracy_score(true_labels, predicted_labels))
+
+        # print(true_labels)
+        # print(predicted_labels)
+
+        # print('Movie\tPredicted\tActual')
+        # for true_label, predicted_label in zip(true_labels, predicted_labels):
+        #     print("%s\t%s" % (true_label, predicted_label))
+
+        print(predicted_labels)
+
+        pred_dict = movie_preds(X_test, predicted_labels) # movie -> genre (onehot)
+        label_dict = movie_preds(X_test, np.argmax(y_test, axis=1)) # movie -> genre (onehot)
 
         print('Test Accuracy predicting Movie Genres: ', test_accuracy(pred_dict, label_dict)) # accuracy
         #

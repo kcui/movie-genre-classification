@@ -95,15 +95,17 @@ def split_on_movie(path="./data/frame-genre-map.txt", multiclass=True):
 
         return X_train, X_test, y_train, y_test, enc
 
-def split_on_movie_normalized(path="./data/frame-genre-map.txt", movies_per_genre=85):
+def split_on_movie_normalized(path="./data/frame-genre-map.txt", movies_per_genre=20):
     try:
         os.stat(path)
     except:
         print("error: frame to genre map file not found; aborting")
         return None
 
-    valid_genres = ['Drama', 'Adventure', 'Crime', 'Action', 'Biography', 
-    'Comedy', 'Horror', 'Mystery', 'Romance', 'Fantasy', 'Thriller']
+    # valid_genres = ['Drama', 'Adventure', 'Crime', 'Action', 'Biography', 
+    # 'Comedy', 'Horror', 'Mystery', 'Romance', 'Fantasy', 'Thriller'],
+
+    valid_genres = ['Action','Comedy', 'Horror', 'Romance']
 
     inputs = []
     labels = []
