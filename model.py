@@ -212,6 +212,7 @@ def plot_model(history):
     plt.xlabel('Epoch')
     plt.legend(['Train', 'Test'], loc='upper left')
     plt.show()
+    plt.savefig('accuracy.png')
 
     # Plot training & validation loss values
     plt.plot(history.history['loss'])
@@ -221,6 +222,7 @@ def plot_model(history):
     plt.xlabel('Epoch')
     plt.legend(['Train', 'Test'], loc='upper left')
     plt.show()
+    plt.savefig('loss.png')
 
 def run_model(multiclass=True, normalized=True):
     # X_train, X_test, y_train, y_test, encoder = load_framedata(multiclass) # loads in data from preprocess
