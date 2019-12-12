@@ -5,6 +5,7 @@ import os
 import tensorflow as tf
 import numpy as nps
 import math
+import random
 from sklearn.preprocessing import OneHotEncoder, MultiLabelBinarizer
 from sklearn.model_selection import train_test_split
 from sklearn.utils import shuffle
@@ -129,13 +130,10 @@ def split_on_movie_normalized(path="./data/frame-genre-map.txt", movies_per_genr
                     continue
                 if genre not in genre_to_movie:
                     genre_to_movie[genre] = set()
-                if len(genre_to_movie[genre]) < movies_per_genre or mov in genre_to_movie[genre]:
-                    genre_to_movie[genre].add(mov)
-                    break
+                genre_to_movie[genre].add(mov)
 
-    for key in genre_to_movie.keys():
-        print(key, len(genre_to_movie[key]))
-        print(genre_to_movie[key])
+    for genre in genre_to_movie.keys():
+        genre_to_movie[genre] = random.sample(genre_to_movie[genre], movies_per_genre)
 
     inputs = []
     labels = []
