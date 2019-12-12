@@ -275,7 +275,7 @@ def run_model(multiclass=True, normalized=True):
 
 
     try:
-        os.stat('./nothingtosee')
+        os.stat('./model_1_4g_180m.h5')
         print("existing model found; loading model...")
         model = load_model('./model_1_4g_180m.h5')
     except:

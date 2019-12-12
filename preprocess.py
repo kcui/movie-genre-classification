@@ -183,6 +183,13 @@ def split_on_movie_normalized(path="./data/frame-genre-map.txt", movies_per_genr
             enc.fit(labels)
             labels = enc.transform(labels).toarray()
             X_train, X_test, y_train, y_test = train_test_split(inputs, labels, test_size=0.2, random_state=42)
+
+        # test_mov_set = set()
+        # for i in X_test:
+        #     test_mov_set.add(i.split('/')[2])
+        # train_mov_set = set()
+        # for i in X_train:
+        #     train_mov_set.add(i.split('/')[2])
         
         # SKlearn train_test_split. Automatically shuffles the data
         return X_train, X_test, y_train, y_test, enc
