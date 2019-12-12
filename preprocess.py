@@ -4,6 +4,7 @@ import unicodedata
 import os
 import tensorflow as tf
 import numpy as nps
+import math
 from sklearn.preprocessing import OneHotEncoder, MultiLabelBinarizer
 from sklearn.model_selection import train_test_split
 from sklearn.utils import shuffle
@@ -95,7 +96,12 @@ def split_on_movie(path="./data/frame-genre-map.txt", multiclass=True):
 
         return X_train, X_test, y_train, y_test, enc
 
-def split_on_movie_normalized(path="./data/frame-genre-map.txt", movies_per_genre=20):
+
+"""
+A normalized split of the database, where each valid genre is assigned an equal number of movies.
+If test_size is specified, no movie in the train set will appear in the test set and vice versa
+"""
+def split_on_movie_normalized(path="./data/frame-genre-map.txt", movies_per_genre=60, test_size=0.2):
     try:
         os.stat(path)
     except:
@@ -106,9 +112,6 @@ def split_on_movie_normalized(path="./data/frame-genre-map.txt", movies_per_genr
     # 'Comedy', 'Horror', 'Mystery', 'Romance', 'Fantasy', 'Thriller'],
 
     valid_genres = ['Action','Comedy', 'Horror', 'Romance']
-
-    inputs = []
-    labels = []
 
     genre_to_movie = {}
 
@@ -126,13 +129,25 @@ def split_on_movie_normalized(path="./data/frame-genre-map.txt", movies_per_genr
                     continue
                 if genre not in genre_to_movie:
                     genre_to_movie[genre] = set()
-                if len(genre_to_movie[genre]) < movies_per_genre:
+                if len(genre_to_movie[genre]) < movies_per_genre or mov in genre_to_movie[genre]:
                     genre_to_movie[genre].add(mov)
                     break
 
     for key in genre_to_movie.keys():
         print(key, len(genre_to_movie[key]))
         print(genre_to_movie[key])
+
+    inputs = []
+    labels = []
+
+    if test_size:
+        split_amt = math.ceil(movies_per_genre * (1 - test_size))
+        test_inputs = []
+        test_labels = []
+        train_movs_per_genre = {}
+
+        for genre in valid_genres:
+            train_movs_per_genre[genre] = set()
 
     with open(path) as map:
         # genre as labels
@@ -147,15 +162,29 @@ def split_on_movie_normalized(path="./data/frame-genre-map.txt", movies_per_genr
                 if genre not in genre_to_movie:
                     continue
                 if mov in genre_to_movie[genre]:
-                    inputs.append(frame_path)
-                    labels.append([genre]) #single class
+                    if test_size and len(train_movs_per_genre[genre]) >= split_amt and mov not in train_movs_per_genre[genre]:
+                        test_inputs.append(frame_path)
+                        test_labels.append([genre])
+                    else:
+                        inputs.append(frame_path)
+                        labels.append([genre]) #single class
+
+                        if test_size:
+                            train_movs_per_genre[genre].add(mov)
                     break
 
         enc = OneHotEncoder()
-        enc.fit(labels)
-        labels = enc.transform(labels).toarray()
-
-        X_train, X_test, y_train, y_test = train_test_split(inputs, labels, test_size=0.2, random_state=42)
-
+        
+        if test_size:
+            enc.fit(labels + test_labels)
+            labels = enc.transform(labels).toarray()
+            test_labels = enc.transform(test_labels).toarray()
+            X_train, y_train = shuffle(inputs, labels)
+            X_test, y_test = shuffle(test_inputs, test_labels)
+        else:
+            enc.fit(labels)
+            labels = enc.transform(labels).toarray()
+            X_train, X_test, y_train, y_test = train_test_split(inputs, labels, test_size=0.2, random_state=42)
+        
         # SKlearn train_test_split. Automatically shuffles the data
         return X_train, X_test, y_train, y_test, enc

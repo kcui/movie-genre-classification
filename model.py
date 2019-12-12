@@ -3,6 +3,7 @@ import numpy as np
 import pickle
 import os
 import sys
+import pickle
 
 from tensorflow.keras.models import Sequential, load_model
 from tensorflow.keras.layers import Dense, Activation, Conv2D, MaxPooling2D, Dropout, Flatten, LeakyReLU
@@ -10,6 +11,7 @@ from tensorflow.keras.optimizers import Adam, SGD
 from preprocess import load_framedata, split_on_movie, split_on_movie_normalized
 from dataGenerator import dataGenerator
 import sklearn
+import matplotlib.pyplot as plt
 
 def setup_model_multiclass(shape, num_classes):
     model = Sequential()
@@ -109,8 +111,6 @@ returns a map from movie to the predicted genre for that movie (onehot)
 def movie_preds(inputs, frame_preds):
 
     mov_dict = dict()
-    print(frame_preds.shape)
-    print(len(inputs))
 
     for i in range(len(inputs)):
         path = inputs[i]
@@ -203,12 +203,31 @@ def convert_onehot_to_genre(pred_dict, label_dict, num_to_genre):
 
     return pred_dict, label_dict
 
+def plot_model(history):
+    # Plot training & validation accuracy values
+    plt.plot(history.history['acc'])
+    plt.plot(history.history['val_acc'])
+    plt.title('Model accuracy')
+    plt.ylabel('Accuracy')
+    plt.xlabel('Epoch')
+    plt.legend(['Train', 'Test'], loc='upper left')
+    plt.show()
+
+    # Plot training & validation loss values
+    plt.plot(history.history['loss'])
+    plt.plot(history.history['val_loss'])
+    plt.title('Model loss')
+    plt.ylabel('Loss')
+    plt.xlabel('Epoch')
+    plt.legend(['Train', 'Test'], loc='upper left')
+    plt.show()
+
 def run_model(multiclass=True, normalized=True):
     # X_train, X_test, y_train, y_test, encoder = load_framedata(multiclass) # loads in data from preprocess
     num_classes = 4
 
-    if normalized:
-        X_train, X_test, y_train, y_test, encoder = split_on_movie_normalized()
+    if normalized: # NEW TEST_SIZE SPECIFIED HERE
+        X_train, X_test, y_train, y_test, encoder = split_on_movie_normalized(test_size=0.2)
     else:
         X_train, X_test, y_train, y_test, encoder = split_on_movie(multiclass=multiclass)
         if multiclass:
@@ -229,9 +248,9 @@ def run_model(multiclass=True, normalized=True):
     for i, genre in enumerate(cats):
         num_to_genre[i] = genre
 
-    print(len(X_train))
-    print(X_train[150])
-    print(y_train[150])
+    # print(len(X_train))
+    # print(X_train[150])
+    # print(y_train[150])
     train_generator = dataGenerator(X_train, y_train, batch_size=32) # see datagenerator class
     # img, y = train_generator.__getitem__(1)
     # img[0]
@@ -243,6 +262,7 @@ def run_model(multiclass=True, normalized=True):
     #t = [np.where(r==1)[0][0] for r in y_train]
     #print(np.bincount(t))
     #print(y_train)
+    validation_generator = dataGenerator(X_test, y_test, batch_size=32)
     test_generator = dataGenerator(X_test, y_test, batch_size=32)
     # test_generator = dataGenerator(X_test[0:20], y_test[0:20], batch_size=32)
     # img, label = test_generator.__getitem__(0)
@@ -253,18 +273,24 @@ def run_model(multiclass=True, normalized=True):
 
 
     try:
-        os.stat('./model_1.h5')
+        os.stat('./model_1_4g_180m.h5')
         print("existing model found; loading model...")
-        model = load_model('./model_1.h5')
+        model = load_model('./model_1_4g_180m.h5')
     except:
         print("no preloaded model. training model...")
         if multiclass:
             model = setup_model_multiclass((128, 176), num_classes=num_classes)
         else:
             model = setup_model_singleclass((128, 176), num_classes=num_classes)
-        model.fit_generator(train_generator, epochs=5, verbose=1)
+        history = model.fit_generator(train_generator, validation_data=validation_generator, epochs=5, verbose=1)
         print("saving model...")
         model.save('model_1.h5')
+        print("graphing model and saving history...")
+
+        with open('/trainHistoryDict', 'wb') as file_pi:
+            pickle.dump(history.history, file_pi)
+
+        plot_model(history)
 
     print('------- Testing model -------')
 
