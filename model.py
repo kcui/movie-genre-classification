@@ -5,13 +5,13 @@ import os
 import sys
 
 from tensorflow.keras.models import Sequential, load_model
-from tensorflow.keras.layers import Dense, Activation, Conv2D, MaxPooling2D, Dropout, Flatten
-from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.layers import Dense, Activation, Conv2D, MaxPooling2D, Dropout, Flatten, LeakyReLU
+from tensorflow.keras.optimizers import Adam, SGD
 from preprocess import load_framedata, split_on_movie, split_on_movie_normalized
 from dataGenerator import dataGenerator
+import sklearn
 
-
-def setup_model(shape, num_classes):
+def setup_model_multiclass(shape, num_classes):
     model = Sequential()
     model.add(Conv2D(32, (3, 3), activation='relu', padding='same', input_shape=(shape[0], shape[1], 3)))
     model.add(Conv2D(32, (3, 3), activation='relu', padding='same',))
@@ -46,9 +46,56 @@ def setup_model(shape, num_classes):
     model.add(Dropout(0.4))
     model.add(Dense(2048, activation='relu'))
     model.add(Dropout(0.4))
-    model.add(Dense(num_classes, activation='sigmoid'))
+    model.add(Dense(num_classes, activation='softmax'))
 
-    adam = Adam(learning_rate=0.0001, beta_1=0.5, beta_2=0.999) # tune adam parameters possibly
+    adam = Adam(learning_rate=0.001, beta_1=0.5, beta_2=0.999) # tune adam parameters possibly
+    model.compile(loss='categorical_crossentropy', optimizer=adam, metrics=['accuracy'])
+    model.summary()
+
+    return model
+
+def setup_model_singleclass(shape, num_classes):
+    model = Sequential()
+    model.add(Conv2D(32, (3, 3), padding='same', input_shape=(shape[0], shape[1], 3)))
+    model.add(LeakyReLU())
+    # model.add(Conv2D(32, (3, 3), activation='relu', padding='same',))
+    model.add(MaxPooling2D(pool_size=(2, 2)))
+    model.add(Dropout(0.1))
+
+    model.add(Conv2D(64, (3, 3), padding='same',))
+    model.add(LeakyReLU())
+    # model.add(Conv2D(64, (3, 3), activation='relu', padding='same',))
+    model.add(MaxPooling2D(pool_size=(2, 2)))
+    model.add(Dropout(0.1))
+    #
+    #model.add(Conv2D(128, (3, 3), padding='same',))
+    #model.add(LeakyReLU())
+    # model.add(Conv2D(128, (3, 3), activation='relu', padding='same',))
+    # model.add(Conv2D(128, (3, 3), activation='relu', padding='same',))
+    #model.add(MaxPooling2D(pool_size=(2, 2)))
+    #model.add(Dropout(0.1))
+    #
+    # model.add(Conv2D(256, (3, 3), activation='relu', padding='same',))
+    # model.add(Conv2D(256, (3, 3), activation='relu', padding='same',))
+    # model.add(Conv2D(256, (3, 3), activation='relu', padding='same',))
+    # model.add(MaxPooling2D(pool_size=(2, 2)))
+    # model.add(Dropout(0.1))
+
+    # model.add(Conv2D(256, (3, 3), activation='relu'))
+    # model.add(Conv2D(256, (3, 3), activation='relu'))
+    # model.add(Conv2D(256, (3, 3), activation='relu'))
+    # model.add(MaxPooling2D(pool_size=(2, 2)))
+    # model.add(Dropout(0.1))
+
+    model.add(Flatten())
+    # model.add(Dense(2048, activation='relu'))
+    # model.add(Dropout(0.1))
+    #model.add(Dense(2048, activation='relu'))
+    #model.add(Dropout(0.2))
+    model.add(Dense(num_classes, activation='softmax'))
+
+    adam = Adam(learning_rate=0.001, beta_1=0.5, beta_2=0.999) # tune adam parameters possibly
+    sgd = SGD(lr=0.01, clipvalue=0.5)
     model.compile(loss='categorical_crossentropy', optimizer=adam, metrics=['accuracy'])
     model.summary()
 
@@ -156,10 +203,11 @@ def convert_onehot_to_genre(pred_dict, label_dict, num_to_genre):
 
 def run_model(multiclass=True, normalized=True):
     # X_train, X_test, y_train, y_test, encoder = load_framedata(multiclass) # loads in data from preprocess
-    num_classes=11
+    num_classes = 11
 
     if normalized:
         X_train, X_test, y_train, y_test, encoder = split_on_movie_normalized()
+        num_classes = 11
     else:
         X_train, X_test, y_train, y_test, encoder = split_on_movie(multiclass=multiclass)
         if multiclass:
@@ -180,7 +228,20 @@ def run_model(multiclass=True, normalized=True):
     for i, genre in enumerate(cats):
         num_to_genre[i] = genre
 
+    print(len(X_train))
+    print(X_train[150])
+    print(y_train[150])
     train_generator = dataGenerator(X_train, y_train, batch_size=32) # see datagenerator class
+    # img, y = train_generator.__getitem__(1)
+    # img[0]
+    # import matplotlib.pyplot as plt
+    # print(img[0].shape)
+    # plt.imshow(img[0])
+    # plt.show()
+    #print(img[0])
+    #t = [np.where(r==1)[0][0] for r in y_train]
+    #print(np.bincount(t))
+    #print(y_train)
     test_generator = dataGenerator(X_test, y_test, batch_size=32)
     # test_generator = dataGenerator(X_test[0:20], y_test[0:20], batch_size=32)
     # img, label = test_generator.__getitem__(0)
@@ -190,16 +251,16 @@ def run_model(multiclass=True, normalized=True):
     # print(y_test[0:20])
 
     try:
-        os.stat('./model_14.h5')
+        os.stat('./model_1.h5')
         print("existing model found; loading model...")
         model = load_model('./model_1.h5')
     except:
         print("no preloaded model. training model...")
         if multiclass:
-            model = setup_model((128, 176), num_classes=num_classes)
+            model = setup_model_multiclass((128, 176), num_classes=num_classes)
         else:
-            model = setup_model((128, 176), num_classes=num_classes)
-        model.fit_generator(train_generator, epochs=1, verbose=1)
+            model = setup_model_singleclass((128, 176), num_classes=num_classes)
+        model.fit_generator(train_generator, epochs=5, verbose=1)
         print("saving model...")
         model.save('model_1.h5')
 
@@ -211,10 +272,11 @@ def run_model(multiclass=True, normalized=True):
     # np.set_printoptions(threshold=sys.maxsize)
 
     frame_preds = model.predict_generator(test_generator, verbose=1) # generate prediction labels on the frames
-
-    # print(frame_preds.shape)
-    # print(frame_preds)
-    # print(np.argmax(frame_preds, axis=1))
+    # print(frame_preds[0:10])
+    # print(np.sum(frame_preds[0]))
+    # #print(frame_preds)
+    print(y_test[0:15])
+    print(np.argmax(frame_preds[0:15], axis=1))
 
     if multiclass:
         # categorical accuracy
@@ -236,15 +298,18 @@ def run_model(multiclass=True, normalized=True):
         print("top 3 genre accuracy: ")
         print(top)
     else:
+        true_labels = [np.where(r==1)[0][0] for r in y_test]
+        predicted_labels = np.argmax(frame_preds, axis=1)
+        print(sklearn.metrics.accuracy_score(true_labels[0:64], predicted_labels))
         pred_dict = movie_preds(X_test, frame_preds.flatten()) # movie -> genre (onehot)
         label_dict = movie_preds(X_test, y_test) # movie -> genre (onehot)
 
         print('Test Accuracy predicting Movie Genres: ', test_accuracy(pred_dict, label_dict)) # accuracy
         #
         pred_dict, label_dict = convert_onehot_to_genre(pred_dict, label_dict, num_to_genre)
-        
+
         print('Movie\tPredicted\tActual')
-        
+
         for mov in pred_dict.keys():
             print("%s\t%s\t%s" % (mov, pred_dict[mov], label_dict[mov]))
 
