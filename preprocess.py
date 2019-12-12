@@ -95,7 +95,7 @@ def split_on_movie(path="./data/frame-genre-map.txt", multiclass=True):
 
         return X_train, X_test, y_train, y_test, enc
 
-def split_on_movie_normalized(path="./data/frame-genre-map.txt", movies_per_genre=85):
+def split_on_movie_normalized(path="./data/frame-genre-map.txt", movies_per_genre=5):
     try:
         os.stat(path)
     except:
@@ -128,9 +128,9 @@ def split_on_movie_normalized(path="./data/frame-genre-map.txt", movies_per_genr
                     genre_to_movie[genre].add(mov)
                     break
 
-    # for key in genre_to_movie.keys():
-    #     print(key, len(genre_to_movie[key]))
-    #     print(genre_to_movie[key])
+    for key in genre_to_movie.keys():
+        print(key, len(genre_to_movie[key]))
+        print(genre_to_movie[key])
 
     with open(path) as map:
         # genre as labels

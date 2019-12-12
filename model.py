@@ -9,6 +9,8 @@ from tensorflow.keras.layers import Dense, Activation, Conv2D, MaxPooling2D, Dro
 from tensorflow.keras.optimizers import Adam
 from preprocess import load_framedata, split_on_movie, split_on_movie_normalized
 from dataGenerator import dataGenerator
+import matplotlib.pyplot as plt
+
 
 
 def setup_model(shape, num_classes):
@@ -188,6 +190,7 @@ def run_model(multiclass=True, normalized=True):
     # print(np.min(img[0]))
     # print(X_test[0:20])
     # print(y_test[0:20])
+
 
     try:
         os.stat('./model_14.h5')
