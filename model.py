@@ -287,7 +287,7 @@ def run_model(multiclass=True, normalized=True):
         model.save('model_1.h5')
         print("graphing model and saving history...")
 
-        with open('/trainHistoryDict', 'wb') as file_pi:
+        with open('trainHistoryDict', 'wb') as file_pi:
             pickle.dump(history.history, file_pi)
 
         plot_model(history)
