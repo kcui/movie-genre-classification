@@ -251,6 +251,7 @@ def run_model(multiclass=True, normalized=True):
     # print(X_test[0:20])
     # print(y_test[0:20])
 
+
     try:
         os.stat('./model_1.h5')
         print("existing model found; loading model...")
