@@ -6,7 +6,7 @@ import sys
 import pickle
 
 from tensorflow.keras.models import Sequential, load_model
-from tensorflow.keras.layers import Dense, Activation, Conv2D, MaxPooling2D, Dropout, Flatten, LeakyReLU
+from tensorflow.keras.layers import Dense, Activation, Conv2D, MaxPooling2D, Dropout, Flatten, LeakyReLU, BatchNormalization
 from tensorflow.keras.optimizers import Adam, SGD
 from preprocess import load_framedata, split_on_movie, split_on_movie_normalized
 from dataGenerator import dataGenerator
@@ -15,27 +15,22 @@ import matplotlib.pyplot as plt
 
 def setup_model_multiclass(shape, num_classes):
     model = Sequential()
-    model.add(Conv2D(32, (3, 3), activation='relu', padding='same', input_shape=(shape[0], shape[1], 3)))
-    model.add(Conv2D(32, (3, 3), activation='relu', padding='same',))
+    model.add(Conv2D(32, (3, 3), padding='same', input_shape=(shape[0], shape[1], 3)))
+    model.add(LeakyReLU())
     model.add(MaxPooling2D(pool_size=(2, 2)))
     model.add(Dropout(0.1))
 
-    model.add(Conv2D(64, (3, 3), activation='relu', padding='same',))
-    model.add(Conv2D(64, (3, 3), activation='relu', padding='same',))
+    model.add(Conv2D(64, (3, 3), padding='same',))
+    model.add(LeakyReLU())
+    model.add(Conv2D(64, (3, 3), padding='same',))
+    model.add(LeakyReLU())
     model.add(MaxPooling2D(pool_size=(2, 2)))
     model.add(Dropout(0.1))
 
-    model.add(Conv2D(128, (3, 3), activation='relu', padding='same',))
-    model.add(Conv2D(128, (3, 3), activation='relu', padding='same',))
-    model.add(Conv2D(128, (3, 3), activation='relu', padding='same',))
-    model.add(MaxPooling2D(pool_size=(2, 2)))
-    model.add(Dropout(0.1))
-
-    model.add(Conv2D(256, (3, 3), activation='relu', padding='same',))
-    model.add(Conv2D(256, (3, 3), activation='relu', padding='same',))
-    model.add(Conv2D(256, (3, 3), activation='relu', padding='same',))
-    model.add(MaxPooling2D(pool_size=(2, 2)))
-    model.add(Dropout(0.1))
+    # model.add(Conv2D(128, (3, 3), padding='same',))
+    # model.add(LeakyReLU())
+    # model.add(MaxPooling2D(pool_size=(2, 2)))
+    # model.add(Dropout(0.1))
 
     # model.add(Conv2D(256, (3, 3), activation='relu'))
     # model.add(Conv2D(256, (3, 3), activation='relu'))
@@ -44,14 +39,14 @@ def setup_model_multiclass(shape, num_classes):
     # model.add(Dropout(0.1))
 
     model.add(Flatten())
-    model.add(Dense(2048, activation='relu'))
-    model.add(Dropout(0.4))
-    model.add(Dense(2048, activation='relu'))
-    model.add(Dropout(0.4))
-    model.add(Dense(num_classes, activation='softmax'))
+    # model.add(Dense(2048, activation='relu'))
+    # model.add(Dropout(0.4))
+    # model.add(Dense(2048, activation='relu'))
+    # model.add(Dropout(0.4))
+    model.add(Dense(num_classes, activation='signmoid'))
 
     adam = Adam(learning_rate=0.001, beta_1=0.5, beta_2=0.999) # tune adam parameters possibly
-    model.compile(loss='categorical_crossentropy', optimizer=adam, metrics=['accuracy'])
+    model.compile(loss='binary_crossentropy', optimizer=adam, metrics=['accuracy'])
     model.summary()
 
     return model
