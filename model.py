@@ -22,8 +22,8 @@ def setup_model_multiclass(shape, num_classes):
 
     model.add(Conv2D(64, (3, 3), padding='same',))
     model.add(LeakyReLU())
-    model.add(Conv2D(64, (3, 3), padding='same',))
-    model.add(LeakyReLU())
+    # model.add(Conv2D(64, (3, 3), padding='same',))
+    # model.add(LeakyReLU())
     model.add(MaxPooling2D(pool_size=(2, 2)))
     model.add(Dropout(0.1))
 
@@ -43,7 +43,7 @@ def setup_model_multiclass(shape, num_classes):
     # model.add(Dropout(0.4))
     # model.add(Dense(2048, activation='relu'))
     # model.add(Dropout(0.4))
-    model.add(Dense(num_classes, activation='signmoid'))
+    model.add(Dense(num_classes, activation='sigmoid'))
 
     adam = Adam(learning_rate=0.001, beta_1=0.5, beta_2=0.999) # tune adam parameters possibly
     model.compile(loss='binary_crossentropy', optimizer=adam, metrics=['accuracy'])
@@ -219,26 +219,27 @@ def plot_model(history):
     plt.show()
     plt.savefig('loss.png')
 
-def run_model(multiclass=True, normalized=True):
+def run_model(multiclass=False, normalized=True):
     # X_train, X_test, y_train, y_test, encoder = load_framedata(multiclass) # loads in data from preprocess
     num_classes = 4
 
-    if normalized: # NEW TEST_SIZE SPECIFIED HERE
-        X_train, X_test, y_train, y_test, encoder = split_on_movie_normalized(test_size=0.2)
-    else:
-        X_train, X_test, y_train, y_test, encoder = split_on_movie(multiclass=multiclass)
-        if multiclass:
-            num_classes=28
-        else:
-            num_classes=24
-    # Used to convert from onehot labels back to genre strings
+    if normalized and not multiclass: # NEW TEST_SIZE SPECIFIED HERE
+        X_train, X_test, y_train, y_test, encoder = split_on_movie_normalized(multiclass=multiclass, test_size=0.2)
+    elif normalized and multiclass:
+        X_train, X_test, y_train, y_test, encoder = split_on_movie_normalized(multiclass=multiclass, test_size=0.2)
+        print(y_train)
+        num_classes=8
 
+    # Used to convert from onehot labels back to genre strings
+    print(np.sum(y_train, axis=0))
+    print(np.sum(y_test, axis=0))
     # print(y_test)
     # print(sum(y_test))
 
     if multiclass:
         cats = encoder.classes_
         print(cats)
+        print(len(cats))
     else:
         cats = encoder.categories_[0]
     num_to_genre = {}
@@ -361,4 +362,4 @@ if __name__ == "__main__":
 
     gpu_available = tf.test.is_gpu_available()
     print("GPU Available: ", gpu_available)
-    run_model(multiclass=False)
+    run_model(multiclass=True)
