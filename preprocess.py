@@ -14,13 +14,8 @@ from sklearn.utils import shuffle
 Casts inputs as filepaths to images, and labels as onehotencoded arrays
 Splits the inputs and labels into a train test split.
 returns X_train, X_test, y_train, y_test
-
-OneHotEncoding needs to be adjusted for multiclass
 """
-# dropout in model
 def load_framedata(multiclass, path="./data/frame-genre-map.txt", train_ratio=1):
-    # TODO: implement drop_rate, test/train split
-    # check if the mapping file is available
     try:
         os.stat(path)
     except:
@@ -199,12 +194,5 @@ def split_on_movie_normalized(multiclass=False, path="./data/frame-genre-map.txt
             labels = enc.transform(labels).toarray()
             X_train, X_test, y_train, y_test = train_test_split(inputs, labels, test_size=0.2, random_state=42)
 
-        # test_mov_set = set()
-        # for i in X_test:
-        #     test_mov_set.add(i.split('/')[2])
-        # train_mov_set = set()
-        # for i in X_train:
-        #     train_mov_set.add(i.split('/')[2])
 
-        # SKlearn train_test_split. Automatically shuffles the data
         return X_train, X_test, y_train, y_test, enc

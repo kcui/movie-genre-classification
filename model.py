@@ -153,14 +153,6 @@ def hamming_score(y_pred, y_true):
         acc_list.append(curr_acc)
     return np.mean(acc_list)
 
-def top_genre_accuracy(y_pred, y_true):
-    sum = 0
-    for i in range(y_true.shape[0]):
-        curr_sum = np.sum(np.equal(y_pred[i],y_true[i]))
-        curr_sum /=3
-        sum += curr_sum
-    return sum / y_true.shape[0]
-
 """
 Return top 3 predicted genres from probabilities as one-hot labels
 """
@@ -168,10 +160,12 @@ Return top 3 predicted genres from probabilities as one-hot labels
 def probs_to_preds(probs):
     preds = np.zeros_like(probs)
     for i in range(probs.shape[0]):
-        top3 = probs[i].argsort()[-3:][::-1]
-        temp = np.zeros(probs.shape[1])
-        pred = np.put(temp, top3, 1)
-        preds[i] = pred
+        curr_probs = probs[i]
+        top3 = np.partition(probs[i].flatten(), -3)[-3]
+        curr_probs[curr_probs>=top3] = 1
+        curr_probs[curr_probs<top3] = 0
+        preds[i] = curr_probs
+    print(preds[0:3])
     return preds
 
 """
@@ -198,10 +192,12 @@ def convert_onehot_to_genre(pred_dict, label_dict, num_to_genre):
 
     return pred_dict, label_dict
 
-def plot_model(history):
+def plot_model(history, fromDict = True):
     # Plot training & validation accuracy values
-    plt.plot(history.history['accuracy'])
-    plt.plot(history.history['val_accuracy'])
+    if not fromDict:
+        history = history.history
+    plt.plot(history['accuracy'])
+    plt.plot(history['val_accuracy'])
     plt.title('Model accuracy')
     plt.ylabel('Accuracy')
     plt.xlabel('Epoch')
@@ -210,8 +206,8 @@ def plot_model(history):
     plt.savefig('accuracy.png')
 
     # Plot training & validation loss values
-    plt.plot(history.history['loss'])
-    plt.plot(history.history['val_loss'])
+    plt.plot(history['loss'])
+    plt.plot(history['val_loss'])
     plt.title('Model loss')
     plt.ylabel('Loss')
     plt.xlabel('Epoch')
@@ -220,11 +216,9 @@ def plot_model(history):
     plt.savefig('loss.png')
 
 def run_model(multiclass=False, normalized=True):
-    # X_train, X_test, y_train, y_test, encoder = load_framedata(multiclass) # loads in data from preprocess
-    num_classes = 4
-
     if normalized and not multiclass: # NEW TEST_SIZE SPECIFIED HERE
         X_train, X_test, y_train, y_test, encoder = split_on_movie_normalized(multiclass=multiclass, test_size=0.2)
+        num_classes = 4
     elif normalized and multiclass:
         X_train, X_test, y_train, y_test, encoder = split_on_movie_normalized(multiclass=multiclass, test_size=0.2)
         print(y_train)
@@ -246,34 +240,21 @@ def run_model(multiclass=False, normalized=True):
     for i, genre in enumerate(cats):
         num_to_genre[i] = genre
 
-    # print(len(X_train))
-    # print(X_train[150])
-    # print(y_train[150])
     train_generator = dataGenerator(X_train, y_train, batch_size=32) # see datagenerator class
-    # img, y = train_generator.__getitem__(1)
-    # img[0]
-    # import matplotlib.pyplot as plt
-    # print(img[0].shape)
-    # plt.imshow(img[0])
-    # plt.show()
-    #print(img[0])
-    #t = [np.where(r==1)[0][0] for r in y_train]
-    #print(np.bincount(t))
-    #print(y_train)
     validation_generator = dataGenerator(X_test, y_test, batch_size=32)
     test_generator = dataGenerator(X_test, y_test, batch_size=32)
-    # test_generator = dataGenerator(X_test[0:20], y_test[0:20], batch_size=32)
-    # img, label = test_generator.__getitem__(0)
-    # print(img[0])
-    # print(np.min(img[0]))
-    # print(X_test[0:20])
-    # print(y_test[0:20])
-
 
     try:
-        os.stat('./none.h5')
+        filepath = './model_1.h5'
+        #filepath = './None'
+        os.stat(filepath)
         print("existing model found; loading model...")
-        model = load_model('./model_1_4g_180m.h5')
+        model = load_model(filepath)
+
+        # Plot history from dictionary
+        with open('./trainHistoryDict', 'rb') as file_pi:
+            history = pickle.load(file_pi)
+            plot_model(history, fromDict = True)
     except:
         print("no preloaded model. training model...")
         if multiclass:
@@ -285,22 +266,16 @@ def run_model(multiclass=False, normalized=True):
         model.save('model_1.h5')
         print("graphing model and saving history...")
 
+        # Save history
         with open('trainHistoryDict', 'wb') as file_pi:
             pickle.dump(history.history, file_pi)
 
-        plot_model(history)
+        plot_model(history, fromDict = False)
 
     print('------- Testing model -------')
 
-    # score = model.evaluate_generator(test_generator, verbose=1)
-    # exit()
-    # print("Test Metrics: ", score)
-    # np.set_printoptions(threshold=sys.maxsize)
-
     frame_preds = model.predict_generator(test_generator, verbose=1) # generate prediction labels on the frames
-    # print(frame_preds[0:10])
-    # print(np.sum(frame_preds[0]))
-    # #print(frame_preds)
+
     print(y_test[0:15])
     print(np.argmax(frame_preds[0:15], axis=1))
 
@@ -319,23 +294,9 @@ def run_model(multiclass=False, normalized=True):
         print("hamming score: ")
         print(score)
 
-        # top genre only
-        top = top_genre_accuracy(preds, y_test)
-        print("top 3 genre accuracy: ")
-        print(top)
     else:
         true_labels = [np.where(r==1)[0][0] for r in y_test]
         predicted_labels = np.argmax(frame_preds, axis=1)
-        # print(sklearn.metrics.accuracy_score(true_labels, predicted_labels))
-
-        # print(true_labels)
-        # print(predicted_labels)
-
-        # print('Movie\tPredicted\tActual')
-        # for true_label, predicted_label in zip(true_labels, predicted_labels):
-        #     print("%s\t%s" % (true_label, predicted_label))
-
-        print(predicted_labels)
 
         pred_dict = movie_preds(X_test, predicted_labels) # movie -> genre (onehot)
         label_dict = movie_preds(X_test, np.argmax(y_test, axis=1)) # movie -> genre (onehot)
@@ -351,10 +312,7 @@ def run_model(multiclass=False, normalized=True):
 
 
 if __name__ == "__main__":
-    # setup_model()
-
-    # Kyle uncomment this to use your GPU
-
+    # Uncomment this to use your GPU
     # with tf.device('/gpu:0'):
     #     gpu_available = tf.test.is_gpu_available()
     #     print("GPU Available: ", gpu_available)
