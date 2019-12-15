@@ -205,8 +205,8 @@ def convert_onehot_to_genre(pred_dict, label_dict, num_to_genre):
 
 def plot_model(history):
     # Plot training & validation accuracy values
-    plt.plot(history.history['acc'])
-    plt.plot(history.history['val_acc'])
+    plt.plot(history.history['accuracy'])
+    plt.plot(history.history['val_accuracy'])
     plt.title('Model accuracy')
     plt.ylabel('Accuracy')
     plt.xlabel('Epoch')
@@ -275,7 +275,7 @@ def run_model(multiclass=True, normalized=True):
 
 
     try:
-        os.stat('./model_1_4g_180m.h5')
+        os.stat('./none.h5')
         print("existing model found; loading model...")
         model = load_model('./model_1_4g_180m.h5')
     except:
