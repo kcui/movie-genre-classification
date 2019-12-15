@@ -89,7 +89,7 @@ def split_on_movie(path="./data/frame-genre-map.txt", multiclass=True):
 
         # ~80% at 93977
         X_train, y_train, X_test, y_test = inputs[:93977], labels[:93977], inputs[93977:95000], labels[93977:95000]
-        
+
         # X_train, y_train = shuffle(X_train, y_train)
 
         X_train, y_train = shuffle(X_train, y_train)
@@ -102,18 +102,19 @@ def split_on_movie(path="./data/frame-genre-map.txt", multiclass=True):
 A normalized split of the database, where each valid genre is assigned an equal number of movies.
 If test_size is specified, no movie in the train set will appear in the test set and vice versa
 """
-def split_on_movie_normalized(path="./data/frame-genre-map.txt", movies_per_genre=60, test_size=0.2):
+def split_on_movie_normalized(multiclass=False, path="./data/frame-genre-map.txt", movies_per_genre=60, test_size=0.2):
     try:
         os.stat(path)
     except:
         print("error: frame to genre map file not found; aborting")
         return None
 
-    # valid_genres = ['Drama', 'Adventure', 'Crime', 'Action', 'Biography', 
-    # 'Comedy', 'Horror', 'Mystery', 'Romance', 'Fantasy', 'Thriller'],
+    multi_valid_genres = ['Drama', 'Adventure', 'Action', 'Comedy', 'Horror', 'Mystery', 'Romance', 'Thriller']
 
-    valid_genres = ['Action','Comedy', 'Horror', 'Romance']
-
+    if multiclass:
+        valid_genres = ['Action', 'Horror', 'Romance']
+    else:
+        valid_genres = ['Action','Comedy', 'Horror', 'Romance']
     genre_to_movie = {}
 
     with open(path) as map:
@@ -155,30 +156,44 @@ def split_on_movie_normalized(path="./data/frame-genre-map.txt", movies_per_genr
             genres = genres.split(',')
 
             mov = frame_path.split('/')[2]
-            
+
             for genre in genres:
                 if genre not in genre_to_movie:
                     continue
                 if mov in genre_to_movie[genre]:
                     if test_size and len(train_movs_per_genre[genre]) >= split_amt and mov not in train_movs_per_genre[genre]:
                         test_inputs.append(frame_path)
-                        test_labels.append([genre])
+                        if multiclass:
+                            test_labels.append(genres)
+                        else:
+                            test_labels.append([genre])
                     else:
                         inputs.append(frame_path)
-                        labels.append([genre]) #single class
-
+                        if multiclass:
+                            labels.append(genres) # multi class
+                        else:
+                            labels.append([genre]) # single class
                         if test_size:
                             train_movs_per_genre[genre].add(mov)
                     break
 
-        enc = OneHotEncoder()
-        
+        if multiclass:
+            enc = MultiLabelBinarizer(classes=multi_valid_genres)
+        else:
+            enc = OneHotEncoder()
         if test_size:
-            enc.fit(labels + test_labels)
-            labels = enc.transform(labels).toarray()
-            test_labels = enc.transform(test_labels).toarray()
-            X_train, y_train = shuffle(inputs, labels)
-            X_test, y_test = shuffle(test_inputs, test_labels)
+            if not multiclass:
+                enc.fit(labels + test_labels)
+                labels = enc.transform(labels).toarray()
+                test_labels = enc.transform(test_labels).toarray()
+                X_train, y_train = shuffle(inputs, labels)
+                X_test, y_test = shuffle(test_inputs, test_labels)
+            else:
+                enc.fit(labels + test_labels)
+                labels = enc.transform(labels)
+                test_labels = enc.transform(test_labels)
+                X_train, y_train = shuffle(inputs, labels)
+                X_test, y_test = shuffle(test_inputs, test_labels)
         else:
             enc.fit(labels)
             labels = enc.transform(labels).toarray()
@@ -190,6 +205,6 @@ def split_on_movie_normalized(path="./data/frame-genre-map.txt", movies_per_genr
         # train_mov_set = set()
         # for i in X_train:
         #     train_mov_set.add(i.split('/')[2])
-        
+
         # SKlearn train_test_split. Automatically shuffles the data
         return X_train, X_test, y_train, y_test, enc
