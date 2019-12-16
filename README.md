@@ -20,4 +20,4 @@ Step 3: Download and extract the IMDb movie info `title.basics.tsv` (with genre 
 
 Model specifications found in model.py. Due to constraints with loading in the entire dataset, the dataset is loaded in as batches using fit_generator. The generator for the data is found in dataGenerator
 
-TODO: separate data into train/test (can be done with scikit learn). run the model. finetune preprocessing. adjust for multiclass
+To run our single-label classification, run `run_model(mutliclass=False)` in main. For multi-label classification, run `run_model(multiclass=True)` in main. Should you wish to train on a GPU, uncomment the specified section in main. 
