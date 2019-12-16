@@ -276,13 +276,9 @@ def run_model(multiclass=False, normalized=True):
 
     frame_preds = model.predict_generator(test_generator, verbose=1) # generate prediction labels on the frames
 
-    print(y_test[0:15])
-    print(np.argmax(frame_preds[0:15], axis=1))
-
     if multiclass:
         # categorical accuracy
         acc = tf.keras.metrics.CategoricalAccuracy()
-        # idxs = np.argsort(frame_preds)[::-1][:3]
         acc.update_state(frame_preds, y_test)
         result = acc.result()
         print("categorical accuracy: ")
