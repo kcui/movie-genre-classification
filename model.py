@@ -27,10 +27,10 @@ def setup_model_multiclass(shape, num_classes):
     model.add(MaxPooling2D(pool_size=(2, 2)))
     model.add(Dropout(0.1))
 
-    # model.add(Conv2D(128, (3, 3), padding='same',))
-    # model.add(LeakyReLU())
-    # model.add(MaxPooling2D(pool_size=(2, 2)))
-    # model.add(Dropout(0.1))
+    model.add(Conv2D(128, (3, 3), padding='same',))
+    model.add(LeakyReLU())
+    model.add(MaxPooling2D(pool_size=(2, 2)))
+    model.add(Dropout(0.1))
 
     # model.add(Conv2D(256, (3, 3), activation='relu'))
     # model.add(Conv2D(256, (3, 3), activation='relu'))
@@ -313,6 +313,7 @@ def run_model(multiclass=False, normalized=True):
 
 if __name__ == "__main__":
     # Uncomment this to use your GPU
+
     # with tf.device('/gpu:0'):
     #     gpu_available = tf.test.is_gpu_available()
     #     print("GPU Available: ", gpu_available)
